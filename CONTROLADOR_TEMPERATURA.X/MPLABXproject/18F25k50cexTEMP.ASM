@@ -213,7 +213,11 @@ PLL_Redy_loop
 		
 		RETURN
 
-SetPines:
+SetPines:  
+                movlw 0x3
+		movwf ANSELA
+		movff ANSELA, TRISA
+		clrf PORTA
 	
 		
 		RETURN
