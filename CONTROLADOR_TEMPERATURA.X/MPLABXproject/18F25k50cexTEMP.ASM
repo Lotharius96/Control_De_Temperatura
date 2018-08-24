@@ -56,7 +56,7 @@
 ;//incluir OBLIGATORIAMENTE los siguientes archivos en Header Files del proyecto:
 #include "25k50config.inc"  ;MCU configuration bits (misma bootloader recomendada)
 #include "vectors.inc"		;vectors remapping for bootloader
-#include "hwconfig.inc"		;I/O definitions for user app
+	;I/O definitions for user app
 ;//el archivo 18F25k50_zhidbldr.lkr debe estar presente en el directorio y agregarse
 ;//a carpeta linker script o linker en mplabIDE o MPLABx respectivamente si nobootloader=0.
 ;//si nobootloader = 1, agregue 18f25k50_znobldr.lkr
@@ -155,7 +155,7 @@ HighInt:
 
 Main:
 ;	*** main code goes here ***
-	call SETUPOSC
+	call SetUpOsc
 	
 	call SETUPIO
 
@@ -163,13 +163,7 @@ Main:
 
     
 LOOP:
-	BSF	 	pLED2			; apaga cátodo LED (Green)
-	BTFSS	pSW1			; chequea pulsador SW?
-	BCF	 	pLED2			; enciende cátodo LED (Green)
-    CALL 	Delay05s		;retardos..
-    CALL 	Delay05s
-    BTG  	pLED1			; conmuta  estado de otro LED (blue)
-    BRA     LOOP			; repite indefinidamente
+	;			; repite indefinidamente
 
 ;******************************************************************************
 ;subroutines:
@@ -202,7 +196,7 @@ Delay05s_0
 	return
 
 ;*************SUBROUTINES******************************************************
-SETUPOSC:
+SetUpOsc:
 		movlw	0x80
 		movf	OSCTUNE					; 3X PLL ratio mode selected
 		movlw	0x72
@@ -219,26 +213,8 @@ PLL_Redy_loop
 		
 		RETURN
 
-SETUPIO:
-	CLRF    LATA
-	CLRF	LATB
+SetPines:
 	
-	BCF		anLED1		; con ayuda de definiciones hwconfig.inc se definen pines I/O
-	BCF		tLED1	;out
-	BCF		anLED2
-	BCF		tLED2	;out
-	BCF		anSW1
-	BSF		tSW1	;in
-	BCF		anSW2
-	BSF		tSW2	;in
-	BCF		anSW0			;SW0 opcional,p.ej.  RA5
-	BSF		tSW0	;in
-
-    ;weak pull ups PORTB only:  Board CEX 1.0 no tiene pull ups externos en SW2 ni SW3!
-	BSF		wpSW1				;individual pull up
-	BSF		wpSW2
-	BCF		INTCON2,RBPU		;GLOBAL pull ups ENABLE
-
 		
 		RETURN
 ;******************************************************************************
