@@ -218,7 +218,11 @@ SetPines:
 		movwf ANSELA
 		movff ANSELA, TRISA
 		clrf PORTA
-	
+                clrf PORTB
+		clrf PORTC
+	        movff PORTB, TRISB
+	        clrf TRISC
+		; configuracion pines para salida 
 		
 		RETURN
 ;******************************************************************************
