@@ -214,7 +214,7 @@ PLL_Redy_loop
 		RETURN
 
 SetPines:  
-                movlw 0x3
+                movlw 0x3 ;lectura del sensor de temperatur y humindad al convertidor analogico digital
 		movwf ANSELA
 		movff ANSELA, TRISA
 		clrf PORTA
@@ -223,7 +223,26 @@ SetPines:
 	        movff PORTB, TRISB
 	        clrf TRISC
 		; configuracion pines para salida 
+
+InterruptConfig: 
+                movlw 0x90
+		movwf INTCON
+		movlw 0x41
+		movwf INtcon2; configuro interrupciones de boton por PULL-DOWN O TENSION 5V
+		movlw 0xD8; configuro las prioridades de las interrupciones como altas
+		movwf intcon3; habilito las dos interrupciones externas
 		
+    
+    
+ADC_Config:
+    
+
+ ;;;;;;;;;;SUBTUTINA DE INTERRUPCION POR BOTON
+ 
+ 
+ 
+ ;;;;;SUBRUTINA DE VISUALIZACION DINAMICA
+
 		RETURN
 ;******************************************************************************
 ;End of program
