@@ -263,14 +263,12 @@ READ_TEMP:
        movf ADRESH, w
        addwf ADRESH, w
        MOVWF temp2
+       rrncf Temp
+       rrncf Temp2
        ; movf ADRESH,W   
        ;addwf ADRESH,W     ;Dupilca el valor de ADRESH para 
-       ;obtener un valor de temperatura real aprox
-       ;movwf lect        ;Guarda el valor de ADRESH en Resto  
-	    
-       ;Comienza el proceso de otención de valores BCD 
-       ;para Centenas, Decenas y unidades atraves de restas
-       ;sucesivas.
+       
+      
 DECENAS1
        ;movlw 0xA
        ;addwf 
