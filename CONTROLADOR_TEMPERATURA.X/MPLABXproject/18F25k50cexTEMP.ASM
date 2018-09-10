@@ -48,9 +48,14 @@
 ;*****************************************************************************************
 
 	LIST P=18F25K50		;directive to define processor
-	#include "p18F25K50_fz.inc"	;processor specific variable definitions
 
-#define nobootloader 0			;nobootloader = 1 =  prog with pickit3 or similar
+        #include "p18F25K50_fz.inc"	;processor specific variable definitions
+
+#define nobootloader 0
+#define High_Voltage 0 
+	
+	
+	;nobootloader = 1 =  prog with pickit3 or similar
 					;nobootloader = 0 =  prog. with USB HID bootloader 2.91 microchip
 ;******************************************************************************
 ;//incluir OBLIGATORIAMENTE los siguientes archivos en Header Files del proyecto:
@@ -72,16 +77,34 @@
 		BSR_TEMP	;variable used for context saving
 		ENDC
 
-		CBLOCK	0x000
-		
-	d1			;d1,d2,d3 usadas por delay05s
+	*********************************************
+;VARIABLES 
+	
+	CBLOCK	0x000 ;si se necesita crear variables seguidas en la ram
+	d1
 	d2
 	d3
-	
-	EXAMPLE		;example of a variable in access RAM
-		ENDC
-;******************************************************************************
-;Constant  definitions
+	;%lect
+	;dato
+	Decimas
+        Decenas
+        Unidades
+	Centenas
+	endc ;obligatorio poner
+    CBLOCK  0x00f
+      Temperatura ; registro de temperatura
+      Humedad ; registro humedad
+      temp;
+      temp2;
+   ;   Unity1; Registro_referencia 1
+    ;  Unity2; Registro_referencia 2
+    
+    endc 
+    cblock 0x01f
+       Boton1
+       Boton2
+       Turn_On ; registro de encendido de los activadores
+    endc 
 ;
 		
 		
@@ -111,7 +134,7 @@ RVReset:
 
 R_IntH        code    REMAPPED_APP_HIGH_ISR_VECTOR
 RVIntH:
-		bra	HighInt		;go to high priority interrupt routine
+		bra	High_Interrupt		;go to high priority interrupt routine
 
 ;******************************************************************************
 ;Low priority interrupt vector and routine
@@ -140,31 +163,263 @@ RVIntL:
 ;High priority interrupt routine
 ; The high priority interrupt code is placed here to avoid conflicting with
 ; the low priority interrupt vector.
+;INTERRUPCIONES
+High_Interrupt:  ;Interrupcion de prioridad alta
+  ; COmprobar 
+    btfss Intcon3, 1 ; boton de temperatura
+    bra $+4
+    call Checkboton1; 
+    btfss Incon3, 0 
+    bra $+4
+    call Checkboton2;    
+    bcf Intcon3, 1
+    bcf Intcon3, 0
+    bsf Intcon3, 4
+    bsf Incon3,  3
+    retfie fast
 
-HighInt:
-
-;	*** high priority interrupt code goes here ***
-
-
-		retfie	FAST
-
-
+ Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
+  bcf Intcon3, 4
+  Delay_60ms
+  Btfss portB, 1
+  bra $+4
+  incf Boton1
+  movlw 0x01
+  cpfsgt Boton1
+  bra $+4
+  clrf Boton1
+  return
+  
+Checkboton2:
+  bcf Intcon3, 3
+   ; bcf Intcon3, 4
+  Delay_60ms
+  Btfss portB, 2 
+  bra $+4
+  incf Boton2
+  movlw 0x02
+  cpfsgt Boton2
+  bra $+4
+  clrf Boton1
+  return   
+    
+;interrupciones
 ;******************************************************************************
-;Start of main program
+;**TABLA DE VALORES DE VISUALIZACION
+  TABLA: 
+
+     ADDWF	PCL,F
+    RETLW	b'0111111'
+    RETLW	b'0000110'
+    RETLW	b'1011011'
+    RETLW	b'1001111'
+    RETLW	b'1100110'
+    RETLW	b'1101101'
+    RETLW	b'1111101'
+    RETLW	b'1000111'
+    RETLW	b'1111101'  
+    RETLW	b'1110011'  
+    
+    RETURN
+  
+  ;****************************************************
+  ;Subrutin DELAY ANTIRREBOTE********************************
+Delay_60ms: 
+    movlw 0x5A;
+    movwf d1
+    movlw 0x45
+    movwf d2
+    movlw 0x5
+    movwf d3
+Delay_S
+    decfsz	d1, f
+	bra	$+4	;ó en 18F bra $+4, goto $+2 en 16F
+	decfsz	d2, f
+	bra	$+4
+	decfsz	d3, f
+	bra	Delay_S
+    return;
+;**********************************************************
+#if High_Voltage == 1
+Conversion:
+    
+    
+#endif
+; 
+;READ_HUMEDITY:
+
+    
+ ;   
+      return
+READ_TEMP:
+     ; RANGO DE MEDICION HASTA 45°
+      ; clrf Decimas
+       clrf Decenas
+       clrf Unidades
+       clrf Decimas
+       movf ADRESL, W
+       addwf ADRESL, w
+       movwf temp
+       movf ADRESH, w
+       addwf ADRESH, w
+       MOVWF temp2
+       ; movf ADRESH,W   
+       ;addwf ADRESH,W     ;Dupilca el valor de ADRESH para 
+       ;obtener un valor de temperatura real aprox
+       ;movwf lect        ;Guarda el valor de ADRESH en Resto  
+	    
+       ;Comienza el proceso de otención de valores BCD 
+       ;para Centenas, Decenas y unidades atraves de restas
+       ;sucesivas.
+DECENAS1
+       ;movlw 0xA
+       ;addwf 
+       
+       
+       movlw d'100'      ;W=d'100'
+       subwf temp,W     ;Resto - d'100' (W)
+       btfss STATUS,C    ;Resto menor que d'100'?
+       goto UNIDADES1     ;SI
+       movwf temp       ;NO, Salva el resto
+       incf Centenas,1   ;Incrementa el contador de centenas BCD
+       goto DECENAS1    ;Realiza otra resta
+
+UNIDADES1
+       movlw d'10'       ;W=d'10'
+       subwf temp,W     ;Resto - d'10' (W)
+       btfss STATUS,C    ;Resto menor que d'10'?
+       goto DECIMAS1    ;Si
+       movwf temp       ;No, Salva el resto
+       incf Unidades,1    ;Incrementa el contador de centenas BCD
+       goto UNIDADES1     ;Realiza otra resta
+       
+DECIMAS1
+       movf temp,W      ;El resto son la Unidades BCD
+       movwf Unidades1
+       clrf temp
+ 
+        
+       RETURN
+    
+;Conversion_Humedad:  
+  
+ ;    return
+  ;;;;;*******************************************************
+;delays
+  DELAY1:
+    movlw 0x30
+    movwf d1
+testbench 
+    decfsz d1,f
+    goto testbench
+    return
+;*************************subrutina delay de espera de datos    
+;Delay2
+
+
+Delay:
+        movlw	0x11
+	movwf	d1
+	movlw	0x5D
+	movwf	d2
+	movlw	0x05
+	movwf	d3
+Delay_0
+	decfsz	d1, f
+	bra	$+4	;ó en 18F bra $+4, goto $+2 en 16F
+	decfsz	d2, f
+	bra	$+4
+	decfsz	d3, f
+	bra	Delay_0
+			;4 cycles (including call)
+	return
+;;;;;;;;;;;;;;;;;;;;
+
+DELAY2:
+       movlw	0xD3
+	movwf	d1
+	movlw	0x31
+	movwf	d2
+Delay_2
+	decfsz	d1, f
+	bra	$+4	;ó en 18F bra $+4, goto $+2 en 16F
+	decfsz	d2, f
+	bra	Delay_2
+			;4 cycles (including call)
+	return	
+;*************************delay2	
+
+
+RetDig: 
+          movlw  0x2 
+          movwf  d1 
+Loop1 
+          movlw  .50 
+          movwf  d2 
+Loop2 
+          decfsz d2,F 
+          goto   Loop2 
+          decfsz d1,F 
+          goto   Loop1 
+          return 
+    
+
+
+
+
+visual:  
+    
+    RLNCF Decenas,W   ;Imprime el dígito de las centenas
+    call TABLA
+    movwf PORTA
+    BTG PORTC,.0
+    CALL RetDig
+    BTG PORTC,.0
+
+    RLNCF Centenas,W   ;Imprime el dígito de las centenas
+    call TABLA
+    movwf PORTA
+    BTG PORTC,.1
+    CALL RetDig
+    BTG PORTC,.1
+    
+    RLNCF Unidades,W   ;Imprime el dígito de las centenas
+    call TABLA
+    movwf PORTA
+    BTG PORTC,.2
+    CALL RetDig
+    BTG PORTC,.2
+
+    RETURN    
+ ;******************************************************************
+  ;Start of main program
 ; The main program code is placed here.
 
 Main:
-;	*** main code goes here ***
-	call SetUpOsc
-	
-	call SETUPIO
-
-;*******
-
-    
-LOOP:
-	;			; repite indefinidamente
-
+;	CALL SETUPOSC
+    CALL SETUPIO
+    call SetUpInterrupt
+    call Loop
+    ;CALL START_ADC
+    ;CALL visual
+    ;CALL Delay1
+Loop:
+    CALL START_ADC
+    CALL visual
+    CALL Delay1
+    call Boton2 ; Boton2 control de visualizacion
+    call Disparo  ; Subrutina de enfriamiento........
+;    END
+    goto Loop		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 ;******************************************************************************
 ;subroutines:
 ; Delay = 0.5 seconds
@@ -172,79 +427,76 @@ LOOP:
 
 ; Actual delay = 0.5 seconds = 2000000 cycles
 ; Error = 0 %
-
+;*************************************
+SETUPOSC:
+    movlw 0x77
+    movwf 0XFD3
+    BSF 0XFD2,.5
+    
+waits BTFSS 0XFD3,.2
+    GOTO waits
+    RETURN
+ ;*****************************CONFIGURACION OSCILADOR
+    
+SETUPIO:
+    CLRF PORTA
+    CLRF PORTB
+    CLRF PORTC
+    CLRF Boton1
+    clrf boton2
+    clrf Turn_On
+    BCF ANSELB,.3 ;PIN DE LECTURA DEL SENSOR DE TEMPERATURA
+    bcf ANSELB,.4 ;PIN DE LECTURA DEL SENSOR DE HUMEDAD
+    ;movlw 0x00
+    clrf ADCON1
+    movlw 0xff; CONFIGURA EL PUERO B COMO ENTRADA
+    movwf TRISB
+    ;movlw 0x00
+    clrf TRISA ; PUERTO B DE SALIDA ASOCIADO AL DISPLAY 7 SEGMENTOS
+    ;movlw 0x00
+    clrf TRISC  ;CONFIGURA EL PUERTO C
+    
+    RETURN
+    
+;**************LECTURA CONVERTIDOR ANALOGO DIGITAL****************
+START_ADC:
+    movlw b'00000010'; configuro la tension de referencia interna positiva
+    movwf ADCON1
+    movlw b'10010000'; toma 4 ciclos de instruccion de adquisicion para contectar con el uerto de envio de datos y una justifacion de bits a la izquierda
+    movwf ADCON2;
+    BTFSC Boton1
+    bra Humedad
+    movlw '00100101'; configura el canal 9 en rb3
+    movwf ADCON0;
+    bra Proceso
+    ;return
+    
+ Humedaad
+    movlw '00101101'; configura el puerto rb4 para canal 11
+    movwf ADCON2
+    bra Proceso
+    
+ Proceso
+    BSF ADCON0,GO  btfsc Boton1, 0
+    movlw
+    movlw b'00100101' ; configura el canal analogico
+    movwf ADCON0
+    CALL DELAY1
+    ;delay1 demora el tiempo de adquisicion de datos
+espera BTFSC ADCON0,GO
+    GOTO espera
+    movf ADRESL,W
+    addwf ADRESL,W
+    ;movwf PORTB
+    
+;    addwf ADRESH,W
+    CALL READ_TEMP
+    RETURN
 	
-
-Delay05s			;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
-					;  ajustando código a PIC18F - PC alineado)
-			;1999996 cycles
-	movlw	0x11
-	movwf	d1
-	movlw	0x5D
-	movwf	d2
-	movlw	0x05
-	movwf	d3
-Delay05s_0
-	decfsz	d1, f
-	goto	$+6
-	decfsz	d2, f
-	goto	$+6
-	decfsz	d3, f
-	goto	Delay05s_0
-
-			;4 cycles (including call)
-	return
-
-;*************SUBROUTINES******************************************************
-SetUpOsc:
-		movlw	0x80
-		movf	OSCTUNE					; 3X PLL ratio mode selected
-		movlw	0x72
-		movwf	OSCCON					; Switch to 16MHz HFINTOSC
-		movlw	0x10
-		movwf	OSCCON2					; Enable PLL, SOSC, PRI OSC drivers turned off
-#if 0	    ; habilitar solo si se usa PLL para oscildor interno
-PLL_Redy_loop
-		btfss	OSCCON2, PLLRDY
-		bra		PLL_Redy_loop			; Wait for PLL lock
-		movlw	0x90
-		movwf	ACTCON
-#endif
-		
-		RETURN
-
-SetPines:  
-                movlw 0x3 ;lectura del sensor de temperatur y humindad al convertidor analogico digital
-		movwf ANSELA
-		movff ANSELA, TRISA
-		clrf PORTA
-                clrf PORTB
-		clrf PORTC
-	        movff PORTB, TRISB
-	        clrf TRISC
-		; configuracion pines para salida 
-
-InterruptConfig: 
-                movlw 0x90
-		movwf INTCON
-		movlw 0x41
-		movwf INtcon2; configuro interrupciones de boton por PULL-DOWN O TENSION 5V
-		movlw 0xD8; configuro las prioridades de las interrupciones como altas
-		movwf intcon3; habilito las dos interrupciones externas
-		
-    
-    
-ADC_Config:
-    
-
- ;;;;;;;;;;SUBTUTINA DE INTERRUPCION POR BOTON
- 
- 
- 
- ;;;;;SUBRUTINA DE VISUALIZACION DINAMICA
-
-		RETURN
-;******************************************************************************
-;End of program
+;***************************************************	
+;Delay del convertidor analogo-digitak
 
 		END
+
+
+ 
