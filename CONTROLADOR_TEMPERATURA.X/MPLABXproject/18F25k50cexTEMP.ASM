@@ -9,7 +9,7 @@
 ;   information on the architecture and instruction set.                      *
 ;                                                                             *
 ;******************************************************************************
-;                                                                             *
+;                                       se quiere se mata shakira                                      *
 ;    Filename:   blinkerASM171.asm                                                             *
 ;    Date:         March 20th 2017                                                           *
 ;    File Version:  1.0                                                          *
@@ -241,7 +241,7 @@ Delay_S
     return;
 ;**********************************************************
 #if High_Voltage == 1
-Conversion:
+;Conversion:
     
     
 #endif
@@ -250,7 +250,7 @@ Conversion:
 
     
  ;   
-      return
+ ;     return
 READ_TEMP:
      ; RANGO DE MEDICION HASTA 45°
       ; clrf Decimas
@@ -392,40 +392,8 @@ visual:
  ;******************************************************************
   ;Start of main program
 ; The main program code is placed here.
-
-Main:
-;	CALL SETUPOSC
-    CALL SETUPIO
-    call SetUpInterrupt
-    call Loop
-    ;CALL START_ADC
-    ;CALL visual
-    ;CALL Delay1
-Loop:
-    CALL START_ADC
-    CALL visual
-    CALL Delay1
-    call Boton2 ; Boton2 control de visualizacion
-    call Disparo  ; Subrutina de enfriamiento........
-;    END
-    goto Loop		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-;******************************************************************************
-;subroutines:
-; Delay = 0.5 seconds
-; Clock frequency = 16 MHz ??
-
-; Actual delay = 0.5 seconds = 2000000 cycles
-; Error = 0 %
-;*************************************
+  ;*************************************************
+    
 SETUPOSC:
     movlw 0x77
     movwf 0XFD3
@@ -434,8 +402,9 @@ SETUPOSC:
 waits BTFSS 0XFD3,.2
     GOTO waits
     RETURN
- ;*****************************CONFIGURACION OSCILADOR
+ ;*****************************CONFIGURACION OSCILADO
     
+;**************LECTURA CONVERTIDOR ANALOGO DIGITAL****************
 SETUPIO:
     CLRF PORTA
     CLRF PORTB
@@ -455,6 +424,8 @@ SETUPIO:
     clrf TRISC  ;CONFIGURA EL PUERTO C
     
     RETURN
+   ;*******CONFIGURACION OSCILADOR
+
     
 ;**************LECTURA CONVERTIDOR ANALOGO DIGITAL****************
 START_ADC:
@@ -469,7 +440,7 @@ START_ADC:
     bra Proceso
     ;return
     
- Humedaad
+ Humedad
     movlw '00101101'; configura el puerto rb4 para canal 11
     movwf ADCON2
     bra Proceso
@@ -490,6 +461,45 @@ espera BTFSC ADCON0,GO
 ;    addwf ADRESH,W
     CALL READ_TEMP
     RETURN
+    ;RETURN
+ ;*************
+  
+  
+  
+Main:
+;	CALL SETUPOSC
+    CALL SETUPIO
+    call SetUpInterrupt
+    call Loop
+    ;CALL START_ADC
+    ;CALL visual
+    ;CALL Delay1
+Loop:
+    CALL START_ADC
+    CALL visual
+    CALL Delay1
+    ;call Boton2 ; Boton2 control de visualizacion
+    call Disparo  ; Subrutina de enfriamiento........
+;    END
+    goto Loop		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+;******************************************************************************
+;subroutines:
+; Delay = 0.5 seconds
+; Clock frequency = 16 MHz ??
+
+; Actual delay = 0.5 seconds = 2000000 cycles
+; Error = 0 %
+;*************************************
+
 	
 ;***************************************************	
 ;Delay del convertidor analogo-digitak
