@@ -1,4 +1,4 @@
-;******************************************************************************
+    ;******************************************************************************
 ;   This file is a basic template for assembly code for a PIC18F25K50. Copy    *
 ;   this file into your project directory and modify or add to it as needed.  *
 ;                                                                             *
@@ -89,22 +89,24 @@
 	Decimas
         Decenas
         Unidades
-	Centenas
+	;Centenas
 	endc ;obligatorio poner
     CBLOCK  0x00f
       Temperatura ; registro de temperatura
       Humedad ; registro humedad
       temp;
       temp2;
+      ref1
+      ref2
+      ref3
+      Boton1
+       Boton2
+       Turn_On
    ;   Unity1; Registro_referencia 1
     ;  Unity2; Registro_referencia 2
     
     endc 
-    cblock 0x01f
-       Boton1
-       Boton2
-       Turn_On ; registro de encendido de los activadores
-    endc 
+   
 ;
 		
 		
@@ -166,21 +168,23 @@ RVIntL:
 ;INTERRUPCIONES
 High_Interrupt:  ;Interrupcion de prioridad alta
   ; COmprobar 
-    btfss Intcon3, 1 ; boton de temperatura
+    bcf INTCON3, 3
+    bcf INTCON3, 4
+    btfss INTCON3, 1 ; boton de temperatura
     bra $+4
     call Checkboton1; 
-    btfss Incon3, 0 
+    btfss INTCON3, 0 
     bra $+4
     call Checkboton2;    
-    bcf Intcon3, 1
-    bcf Intcon3, 0
-    bsf Intcon3, 4
-    bsf Incon3,  3
+    bcf INTCON3, 1; BORRO LAS FLAGS DE LAS INTERRUPCIONES
+    bcf INTCON3, 0
+    bsf INTCON3, 4;HABILITO LAS INTERRUPCIONES
+    bsf INTCON3, 3
     retfie fast
 
  Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
-  bcf Intcon3, 4
-  Delay_60ms
+  ;bcf Intcon3, 4
+  call Delay_60ms
   Btfss portB, 1
   bra $+4
   incf Boton1
@@ -191,9 +195,9 @@ High_Interrupt:  ;Interrupcion de prioridad alta
   return
   
 Checkboton2:
-  bcf Intcon3, 3
+  ;bcf Intcon3, 3
    ; bcf Intcon3, 4
-  Delay_60ms
+  call Delay_60ms
   Btfss portB, 2 
   bra $+4
   incf Boton2
@@ -206,7 +210,8 @@ Checkboton2:
 ;interrupciones
 ;******************************************************************************
 ;**TABLA DE VALORES DE VISUALIZACION
-  TABLA: 
+#if High_Voltage == 1  
+TABLA: 
 
      ADDWF	PCL,F
     RETLW	b'0111111'
@@ -221,7 +226,7 @@ Checkboton2:
     RETLW	b'1110011'  
     
     RETURN
-  
+#endif
   ;****************************************************
   ;Subrutin DELAY ANTIRREBOTE********************************
 Delay_60ms: 
@@ -239,12 +244,7 @@ Delay_S
 	decfsz	d3, f
 	bra	Delay_S
     return;
-;**********************************************************
-#if High_Voltage == 1
-;Conversion:
-    
-    
-#endif
+
 ; 
 ;READ_HUMEDITY:
 
@@ -293,8 +293,8 @@ UNIDADES1
        
 DECIMAS1
        movf temp,W      ;El resto son la Unidades BCD
-       movwf Unidades1
-       clrf temp
+       movwf Decimas
+   ;    clrf temp
  
         
        RETURN
@@ -304,6 +304,7 @@ DECIMAS1
  ;    return
   ;;;;;*******************************************************
 ;delays
+#if High_Voltage == 1
   DELAY1:
     movlw 0x30
     movwf d1
@@ -313,24 +314,25 @@ testbench
     return
 ;*************************subrutina delay de espera de datos    
 ;Delay2
+#endif    
 
-
-Delay:
-        movlw	0x11
-	movwf	d1
-	movlw	0x5D
-	movwf	d2
-	movlw	0x05
-	movwf	d3
-Delay_0
-	decfsz	d1, f
-	bra	$+4	;ó en 18F bra $+4, goto $+2 en 16F
-	decfsz	d2, f
-	bra	$+4
-	decfsz	d3, f
-	bra	Delay_0
+#if High_Voltage == 1
+;Delay:
+ ;       movlw	0x11
+	;movwf	d1
+;:	movlw	0x5D
+;	movwf	d2
+;	movlw	0x05
+;	movwf	d3
+;Delay_0
+;	decfsz	d1, f
+;	bra	$+4	;ó en 18F bra $+4, goto $+2 en 16F
+;	decfsz	d2, f
+;	bra	$+4
+;	decfsz	d3, f
+;	bra	Delay_0
 			;4 cycles (including call)
-	return
+;	return
 ;;;;;;;;;;;;;;;;;;;;
 
 DELAY2:
@@ -345,8 +347,9 @@ Delay_2
 	bra	Delay_2
 			;4 cycles (including call)
 	return	
-;*************************delay2	
-
+;*************************delay
+#endif 	
+#if High_Voltage == 1
 
 RetDig: 
           movlw  0x2 
@@ -361,39 +364,48 @@ Loop2
           goto   Loop1 
           return 
     
+#endif
 
 
-
-
-visual:  
+#if High_Voltage ==1
+ visual:  
     
     RLNCF Decenas,W   ;Imprime el dígito de las centenas
     call TABLA
     movwf PORTA
-    BTG PORTC,.0
+    BTG PORTC,.5
     CALL RetDig
-    BTG PORTC,.0
+    BTG PORTC,.5
 
     RLNCF Centenas,W   ;Imprime el dígito de las centenas
     call TABLA
     movwf PORTA
-    BTG PORTC,.1
+    BTG PORTC,.6
     CALL RetDig
-    BTG PORTC,.1
+    BTG PORTC,.6
     
     RLNCF Unidades,W   ;Imprime el dígito de las centenas
     call TABLA
     movwf PORTA
-    BTG PORTC,.2
+    BTG PORTC,.7
     CALL RetDig
-    BTG PORTC,.2
-
+    BTG PORTC,.7
+ ;00000011 or 00000101 or 000000
     RETURN    
+#endif
  ;******************************************************************
   ;Start of main program
 ; The main program code is placed here.
   ;*************************************************
-    
+SetUpInterrupt:
+    movlw 0xC0
+    MOVWF INTCON
+    movlw 0xF0
+    MOVWF INTCON2
+    movlw 0XD8
+    MOVWF INTCON
+    movlw 
+  
 SETUPOSC:
     movlw 0x77
     movwf 0XFD3
@@ -412,12 +424,14 @@ SETUPIO:
     CLRF Boton1
     clrf boton2
     clrf Turn_On
+    movlw 0x1F; CONFIGURA EL PUERO B COMO ENTRADA
+    movwf TRISB
     BCF ANSELB,.3 ;PIN DE LECTURA DEL SENSOR DE TEMPERATURA
     bcf ANSELB,.4 ;PIN DE LECTURA DEL SENSOR DE HUMEDAD
     ;movlw 0x00
     clrf ADCON1
-    movlw 0xff; CONFIGURA EL PUERO B COMO ENTRADA
-    movwf TRISB
+   ; movlw 0x1F; CONFIGURA EL PUERO B COMO ENTRADA
+    :;movwf TRISB
     ;movlw 0x00
     clrf TRISA ; PUERTO B DE SALIDA ASOCIADO AL DISPLAY 7 SEGMENTOS
     ;movlw 0x00
@@ -442,14 +456,14 @@ START_ADC:
     
  Humedad
     movlw '00101101'; configura el puerto rb4 para canal 11
-    movwf ADCON2
+    movwf ADCON0
     bra Proceso
     
  Proceso
-    BSF ADCON0,GO  btfsc Boton1, 0
-    movlw
-    movlw b'00100101' ; configura el canal analogico
-    movwf ADCON0
+   ; BSF ADCON0,GO  btfsc Boton1, 0
+    ;movlw
+    ;movlw b'00100101' ; configura el canal analogico
+    ;movwf ADCON0
     CALL DELAY1
     ;delay1 demora el tiempo de adquisicion de datos
 espera BTFSC ADCON0,GO
@@ -463,11 +477,28 @@ espera BTFSC ADCON0,GO
     RETURN
     ;RETURN
  ;*************
+  ;*********************************
+#if High_Voltage == 1
+Disparo:
+    movff Decimas, ref1
+    movf Unidades, w
+    mulwf ref1, w 
+    movlw 0x18
+    cpfseq ref1
+    bra $+4
+    bsf PORTC, 0
+    movlw 0x05
+    cpfseq ref1
+    BRA $+4
+    BCF PORTC, 0
+    return
   
+#endif  
+  ;*****************************************
   
   
 Main:
-;	CALL SETUPOSC
+    CALL SETUPOSC
     CALL SETUPIO
     call SetUpInterrupt
     call Loop
@@ -477,7 +508,7 @@ Main:
 Loop:
     CALL START_ADC
     CALL visual
-    CALL Delay1
+    CALL Delay2
     ;call Boton2 ; Boton2 control de visualizacion
     call Disparo  ; Subrutina de enfriamiento........
 ;    END
@@ -503,8 +534,7 @@ Loop:
 	
 ;***************************************************	
 ;Delay del convertidor analogo-digitak
-
-		END
+END
 
 
  
