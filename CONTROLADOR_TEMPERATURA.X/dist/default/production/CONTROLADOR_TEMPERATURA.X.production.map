@@ -1,0 +1,136 @@
+MPLINK 5.08, LINKER
+Linker Map File - Created Wed Sep 12 08:29:54 2018
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                R_vectors       code   0x000800    program   0x000004
+                   R_IntH       code   0x000808    program   0x00000e
+                   .cinit    romdata   0x000816    program   0x000002
+                   R_IntL       code   0x000818    program   0x0001d4
+.config_300000_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300000    program   0x000001
+.config_300001_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300001    program   0x000001
+.config_300002_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300002    program   0x000001
+.config_300003_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300003    program   0x000001
+.config_300005_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300005    program   0x000001
+.config_300006_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300006    program   0x000001
+.config_300008_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300008    program   0x000001
+.config_300009_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x300009    program   0x000001
+.config_30000A_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x30000a    program   0x000001
+.config_30000B_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x30000b    program   0x000001
+.config_30000C_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x30000c    program   0x000001
+.config_30000D_BUILD/DEFAULT/PRODUCTION/MPLABXP    romdata   0x30000d    program   0x000001
+                   .org_0       code   0xf00000    program   0x000010
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000800    0x000803      
+                            0x000808    0x0009eb      
+                            0x300000    0x300003      
+                            0x300005    0x300006      
+                            0x300008    0x30000d      
+                            0xf00000    0xf0000f      
+            516 out of 33048 program addresses used, program memory utilization is 1%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+              Checkboton1   0x000850    program     static MPLABXproject/18F25k50cexTEMP.ASM
+              Checkboton2   0x000864    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                 DECENAS1   0x0008c0    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                 DECIMAS1   0x0008e4    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   DELAY1   0x0008ea    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   DELAY2   0x0008f6    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Delay_2   0x0008fe    program     static MPLABXproject/18F25k50cexTEMP.ASM
+               Delay_60ms   0x000890    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Delay_S   0x00089c    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Disparo   0x0009ae    program     static MPLABXproject/18F25k50cexTEMP.ASM
+           High_Interrupt   0x000832    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                     Loop   0x0009d8    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    Loop1   0x00090c    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    Loop2   0x000910    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                     Main   0x0009c8    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Proceso   0x00099a    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                READ_TEMP   0x0008aa    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   RVIntH   0x000808    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   RVIntL   0x000818    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  RVReset   0x000800    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   RetDig   0x000908    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  SETUPIO   0x00096c    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                 SETUPOSC   0x00095e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                START_ADC   0x000988    program     static MPLABXproject/18F25k50cexTEMP.ASM
+           SetUpInterrupt   0x000950    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    TABLA   0x000878    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                UNIDADES1   0x0008d2    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Vectors   0xf00010    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0838   0x000838    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0840   0x000840    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0856   0x000856    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_085E   0x00085e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_086A   0x00086a    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0872   0x000872    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_089E   0x00089e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_08A2   0x0008a2    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0900   0x000900    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_09BA   0x0009ba    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_09C2   0x0009c2    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   espera   0x00099e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                testbench   0x0008ee    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   visual   0x00091e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    waits   0x000964    program     static MPLABXproject/18F25k50cexTEMP.ASM
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                  RVReset   0x000800    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   RVIntH   0x000808    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   RVIntL   0x000818    program     static MPLABXproject/18F25k50cexTEMP.ASM
+           High_Interrupt   0x000832    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0838   0x000838    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0840   0x000840    program     static MPLABXproject/18F25k50cexTEMP.ASM
+              Checkboton1   0x000850    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0856   0x000856    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_085E   0x00085e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+              Checkboton2   0x000864    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_086A   0x00086a    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0872   0x000872    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    TABLA   0x000878    program     static MPLABXproject/18F25k50cexTEMP.ASM
+               Delay_60ms   0x000890    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Delay_S   0x00089c    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_089E   0x00089e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_08A2   0x0008a2    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                READ_TEMP   0x0008aa    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                 DECENAS1   0x0008c0    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                UNIDADES1   0x0008d2    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                 DECIMAS1   0x0008e4    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   DELAY1   0x0008ea    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                testbench   0x0008ee    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   DELAY2   0x0008f6    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Delay_2   0x0008fe    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_0900   0x000900    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   RetDig   0x000908    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    Loop1   0x00090c    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    Loop2   0x000910    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   visual   0x00091e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+           SetUpInterrupt   0x000950    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                 SETUPOSC   0x00095e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                    waits   0x000964    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  SETUPIO   0x00096c    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                START_ADC   0x000988    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Proceso   0x00099a    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                   espera   0x00099e    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Disparo   0x0009ae    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_09BA   0x0009ba    program     static MPLABXproject/18F25k50cexTEMP.ASM
+             _R_IntL_09C2   0x0009c2    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                     Main   0x0009c8    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                     Loop   0x0009d8    program     static MPLABXproject/18F25k50cexTEMP.ASM
+                  Vectors   0xf00010    program     static MPLABXproject/18F25k50cexTEMP.ASM
+
+

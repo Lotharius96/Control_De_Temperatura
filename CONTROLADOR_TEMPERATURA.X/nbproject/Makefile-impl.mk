@@ -36,7 +36,7 @@ ALLCONFS=default
 
 # build
 .build-impl: .build-pre
-        ${MAKE} -f nbproject/Makefile-${CONF}.mk SUBPROJECTS=${SUBPROJECTS} .build-conf
+	${MAKE} -f nbproject/Makefile-${CONF}.mk SUBPROJECTS=${SUBPROJECTS} .build-conf
 
 
 # clean
