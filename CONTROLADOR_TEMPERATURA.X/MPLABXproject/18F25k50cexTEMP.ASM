@@ -51,9 +51,9 @@
 
         #include "p18f25k50_fz.inc"	;processor specific variable definitions
 
-#define nobootloader 0
+#define nobootloader 1
 #define High_Voltage 0 
-	
+#define Humedity     0	
 	
 	;nobootloader = 1 =  prog with pickit3 or similar
 					;nobootloader = 0 =  prog. with USB HID bootloader 2.91 microchip
@@ -172,8 +172,11 @@ RVIntL:
 ;INTERRUPCIONES
 High_Interrupt:  ;Interrupcion de prioridad alta
   ; COmprobar 
+;**************************Desahibilitando Interrupciones***************************
     bcf INTCON3, 3
     bcf INTCON3, 4
+;Desahibilita interrupcion de boton
+ ;****************************Comprobando Interrupciones****************************** 
     btfss INTCON3, 1 ; boton de temperatura
     bra $+4
     call Checkboton1; 
@@ -182,45 +185,52 @@ High_Interrupt:  ;Interrupcion de prioridad alta
     call Checkboton2;    
     bcf INTCON3, 1; BORRO LAS FLAGS DE LAS INTERRUPCIONES
     bcf INTCON3, 0
+;******************************habilitando Interrupciones*************************************
     bsf INTCON3, 4;HABILITO LAS INTERRUPCIONES
     bsf INTCON3, 3
     retfie 
 
+;********************************SUBRUTINAS DE BOTON PARA MEDICION CONTINUA O  **************************************************
 Checkboton1:  
  ; subrutijna averigua el estado boton Variable de medicion
   ;bcf Intcon3, 4
-  call Delay_60ms
+  ;*call Delay_60ms
+;************ES UN ANTIRREBOTE******************************
+Espera_Boton1  
   Btfss PORTB, 1
-  bra $+4
+  bra Espera_Boton
+;*****************************************************
   incf boton1
   movlw 0x01
-  cpfsgt boton1
+  cpfsgt boton1 ;pregunta si el registro boton1 es mayor a lo cargado en el registro w
   bra $+4
   clrf boton1
   return
-  
+ ;****************************
+;*****************************SUBRUTINA DE SEGUNDO BOTON**************************** 
 Checkboton2:
   ;bcf Intcon3, 3
    ; bcf Intcon3, 4
-  call Delay_60ms
+  ;call Delay_60ms
+Espera_Boton2  
   Btfss PORTB, 2 
-  bra $+4
+  bra Espera_Boton2
+;**********************************
   incf boton2
   movlw 0x02
   cpfsgt boton2
   bra $+4
-  clrf boton1
+  clrf boton2
   return   
-    
-;interrupciones
+;***************************************************************    
 ;******************************************************************************
 ;**TABLA DE VALORES DE VISUALIZACION
 ;#if High_Voltage == 1  
 TABLA: 
 
      ADDWF	PCL,F
-    RETLW	b'0111111'
-    RETLW	b'0000110'
+    RETLW	b'0111111';8
+    RETLW	b'0000110';
     RETLW	b'1011011'
     RETLW	b'1001111'
     RETLW	b'1100110'
@@ -234,6 +244,7 @@ TABLA:
 ;#endif
   ;****************************************************
   ;Subrutin DELAY ANTIRREBOTE********************************
+#if High_Voltage == 0
 Delay_60ms: 
     movlw 0x5A;
     movwf d1
@@ -249,7 +260,7 @@ Delay_S
 	decfsz	d3, f
 	bra	Delay_S
     return;
-
+#endif
 ; 
 ;READ_HUMEDITY:
 
@@ -261,12 +272,13 @@ READ_TEMP:
       ; clrf Decimas
        clrf Decenas
        clrf Unidades
-       clrf Decimas
-       movf ADRESL, W
-       addwf ADRESL, w
+       clrf Decima
+  ;************LIMPIAN LOS REGISTROS DE VISUALIZACIONs
+       movf ADRESL, W ;****SE CARGA A W 
+       ;addwf ADRESL, w
        movwf temp
        movf ADRESH, w
-       addwf ADRESH, w
+       ;addwf ADRESH, w
        MOVWF temp2
        rrncf temp
        rrncf temp2
@@ -353,7 +365,6 @@ Delay_2
 			;4 cycles (including call)
 	return	
 ;*************************delay
-;#endif 	
 ;#if High_Voltage == 1
 
 RetDig: 
@@ -378,30 +389,30 @@ visual:
     RLNCF Decenas,W   ;Imprime el dígito de las centenas
     call TABLA
     movwf PORTA
-    BTG PORTC,.5
+    BTG PORTB,.5
     CALL RetDig
-    BTG PORTC,.5
+    BTG PORTB,.5
 
     RLNCF Unidades,W   ;Imprime el dígito de las centenas
     call TABLA
     movwf PORTA
-    BTG PORTC,.6
+    BTG PORTB,.6
     CALL RetDig
     BTG PORTC,.6
     
     RLNCF Unidades,W   ;Imprime el dígito de las centenas
     call TABLA
     movwf PORTA
-    BTG PORTC,.7
+    BTG PORTB,.7
     CALL RetDig
-    BTG PORTC,.7
+    BTG PORTB,.7
  ;00000011 or 00000101 or 000000
     RETURN    
 ;#endif
  ;******************************************************************
   ;Start of main program
 ; The main program code is placed here.
-  ;*************************************************
+  ;************************************************* CONFIGURACION DE INTERRUPCIONES******************
 SetUpInterrupt:
     movlw 0xC0
     MOVWF INTCON
@@ -410,7 +421,7 @@ SetUpInterrupt:
     movlw 0XD8
     MOVWF INTCON
     return
-  
+;*********************************************   CONFIGURACION DE OSCILADOR****************************
 SETUPOSC:
     movlw 0x77
     movwf 0XFD3
@@ -418,10 +429,10 @@ SETUPOSC:
     
 waits BTFSS 0XFD3,.2
     GOTO waits
-    RETURN
- ;*****************************CONFIGURACION OSCILADO
+    return
+
     
-;**************LECTURA CONVERTIDOR ANALOGO DIGITAL****************
+;**************CONFIGURACION DEL LOS PUERTOS DE ENTRADA Y SALIDA***************************************************
 SETUPIO:
     CLRF PORTA
     CLRF PORTB
@@ -429,16 +440,22 @@ SETUPIO:
     CLRF boton1
     clrf boton2
     clrf Turn_On
+;*******************************************CONFIGURA EL PUERTO A COMO SALIDA**********************************
+    CLRF TRISTA
     movlw 0x1F; CONFIGURA EL PUERO B COMO ENTRADA
     movwf TRISB
-    BCF ANSELB,.3 ;PIN DE LECTURA DEL SENSOR DE TEMPERATURA
-    bcf ANSELB,.4 ;PIN DE LECTURA DEL SENSOR DE HUMEDAD
+;****************************************************************
+    BCF ANSELB,.3 ;PIN DE LECTURA DEL SENSOR DE TEMPERATURA------- SELECCIONA EL CANAL 9
+    bcf ANSELB,.4 ;PIN DE LECTURA DEL SENSOR DE HUMEDAD -----------SELECCION EL CANAL 11
+;******************************************************
+    BCF TRISC, .0 CONFIGURA EL PUERTO C COMO SALIDA
+;***************************************************
     ;movlw 0x00
-    clrf ADCON1
+    ;clrf ADCON1
    ; movlw 0x1F; CONFIGURA EL PUERO B COMO ENTRADA
 ;    :;movwf TRISB
     ;movlw 0x00
-    clrf TRISA ; PUERTO B DE SALIDA ASOCIADO AL DISPLAY 7 SEGMENTOS
+    ;clrf TRISA ; PUERTO B DE SALIDA ASOCIADO AL DISPLAY 7 SEGMENTOS
     ;movlw 0x00
     clrf TRISC  ;CONFIGURA EL PUERTO C
     
@@ -446,44 +463,42 @@ SETUPIO:
    ;*******CONFIGURACION OSCILADOR
 
     ;return
-;Humedad:
- ;   movlw b'00101101'; configura el puerto rb4 para canal 11
-  ;  movwf ADCON0
-    ;bra Proceso
-   ; return
-   
-   
-;**************LECTURA CONVERTIDOR ANALOGO DIGITAL****************
-START_ADC:
+;***************************Subrutina de Visualizacion de Humedad*********************
+Humedity:    
+     movlw b'00101101'; configura el puerto rb4 para canal 11
+     movwf ADCON0
+     return
+  
+;*************************************************************************************
+;*****************************SETUP_ADC***************************
+;**************CONFIGURA EL ADC, LOS REGISTROS DE CORRIMIENTO Y VOLTAJE DE REFERENCIA******************************************
     movlw b'00000010'; configuro la tension de referencia interna positiva
     movwf ADCON1
     movlw b'10010000'; toma 4 ciclos de instruccion de adquisicion para contectar con el uerto de envio de datos y una justifacion de bits a la izquierda
     movwf ADCON2;
-    movlw b'00101101'
-    BTFSC boton1, 1
-   ; goto Humedad
-    movlw b'00101101'
+;**************LECTURA CONVERTIDOR ANALOGO DIGITAL****************
+START_ADC:
+    movlw b'00100101'
     movwf ADCON0
+    #if Humedity == 1
+    movlw 0x00
+    cpfseq Boton1
+    bra Humedity
     bra Proceso
-
+    #endif
 Proceso
-   ; BSF ADCON0,GO  btfsc Boton1, 0
-    ;movlw
-    ;movlw b'00100101' ; configura el canal analogico
-    ;movwf ADCON0
-    CALL DELAY1
-    ;delay1 demora el tiempo de adquisicion de datos
+    CALL DELAY1   ;delay1 demora el tiempo de adquisicion de datos
 espera 
-    BTFSC ADCON0,GO
+    BTFSC ADCON0,GO  ; ESPERA UN TIEMPO HASTA QUE ARRANQUE LA CONVERSION DE LOS DATOS
     GOTO espera
-    movf ADRESL,W
-    addwf ADRESL,W
+    ; movf ADRESL,W
+    ;addwf ADRESL,W
     ;movwf PORTB
-    
-;    addwf ADRESH,W
+    ;addwf ADRESH,W
+    ;******************LLAMADO A LA LECTURA DE TEMPERATURA
     CALL READ_TEMP
     RETURN
-    ;RETURN
+    
  ;*************
   ;*********************************
 ;#if High_Voltage == 1
@@ -509,7 +524,9 @@ Main:
     CALL SETUPOSC
     CALL SETUPIO
     call SetUpInterrupt
+    CALL SETUP_ADC
     call Loop
+  
     ;CALL START_ADC
     ;CALL visual
     ;CALL Delay1
@@ -518,31 +535,13 @@ Loop:
     CALL visual
     CALL DELAY2
     ;call Boton2 ; Boton2 control de visualizacion
-    call Disparo  ; Subrutina de enfriamiento........
-;    END
+    
+    ;call Disparo  ; Subrutina de enfriamiento........
+
     goto Loop		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-;******************************************************************************
-;subroutines:
-; Delay = 0.5 seconds
-; Clock frequency = 16 MHz ??
 
-; Actual delay = 0.5 seconds = 2000000 cycles
-; Error = 0 %
-;*************************************
-
-	
-;***************************************************	
-;Delay del convertidor analogo-digitak
+;****************************************************************************
      END
 
 
- 
+
