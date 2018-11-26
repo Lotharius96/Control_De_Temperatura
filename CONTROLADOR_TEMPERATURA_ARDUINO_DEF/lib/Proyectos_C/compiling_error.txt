@@ -1,0 +1,4 @@
+/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA_ARDUINO_DEF/lib/Proyectos_C/Tabla_Lectura.h:3:10: fatal error: Arduino.h: No such file or directory
+ #include "Arduino.h"
+          ^~~~~~~~~~~
+compilation terminated.

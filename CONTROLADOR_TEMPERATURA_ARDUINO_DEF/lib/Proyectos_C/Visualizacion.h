@@ -5,9 +5,10 @@
 /////
  class Visualizacion{
     public:
-      void Visualizacion();
+      Visualizacion();
+      void GetBoton(int Boton_Value);
       void Visual(float Measure);
       void Visualizar(int x, int y, int z);
-      void Matrix_Read(int Matriz[8],bool Stble);
+      void Matrix_Read(int *Matriz,bool Stble);
  };
 #endif

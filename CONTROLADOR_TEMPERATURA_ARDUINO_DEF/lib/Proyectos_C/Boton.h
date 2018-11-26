@@ -4,7 +4,8 @@
 
 class Boton{
     public:
-      void Boton();
+      Boton();
       int Conteo();
 
-}
+};
+#endif

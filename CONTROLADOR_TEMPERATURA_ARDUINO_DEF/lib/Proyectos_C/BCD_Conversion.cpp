@@ -2,8 +2,9 @@
 #include "BCD_Conversion.h"
 
 int Unidad,Decena,Centena=0;
-void BCD_Conversion::BCD_Conversion(){};
-unsigned int BCD_Conversion::Lectura_Centena(float Value) {
+
+BCD_Conversion::BCD_Conversion(){};
+int BCD_Conversion::Lectura_Centena(float Value) {
   /* code */
 //  float Temp=0;
   Centena=(uint8_t)(Value/100);
@@ -11,7 +12,7 @@ unsigned int BCD_Conversion::Lectura_Centena(float Value) {
   //Decena=(uint8_t)((Value-Centena*100)/10);
   //Unidad=(uint8_t)((Value-Centena*100-Decena*10))
 }
-unsigned int BCD_Conversion::Lectura_Decena(float Value) {
+int BCD_Conversion::Lectura_Decena(float Value) {
   /* code */
 //  float Temp=0;
   //Centena=(uint8_t)(Value/100);
@@ -20,7 +21,7 @@ unsigned int BCD_Conversion::Lectura_Decena(float Value) {
   //Unidad=(uint8_t)((Value-Centena*100-Decena*10))
 }
 
-unsigned int BCD_Conversion::Lectura_Unidad(float Value) {
+int BCD_Conversion::Lectura_Unidad(float Value) {
   /* code */
 //  float Temp=0;
   //Centena=(uint8_t)(Value/100);

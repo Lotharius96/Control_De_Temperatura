@@ -3,7 +3,7 @@
 
 int base=0;
 int counter = 0;
-void Boton::Boton(){}
+Boton::Boton(){}
 int Boton::Conteo(){
   counter++;
   if(counter >2){

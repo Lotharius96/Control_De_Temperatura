@@ -14,13 +14,14 @@ int Tabla[10][8]={
   {0,1,1,1,1,1,1,1},//8
   {0,1,1,0,0,1,1,1}//9
   //{}
-}
+};
 //byte Tabla_Read[8](int valor);
 
-void Tabla_Lectura::Tabla_Lectura(){}
+Tabla_Lectura::Tabla_Lectura(){};
+
 int *Tabla_Lectura::Tabla_Read(int valor){
   int counter=0;
-  int Salida[8];
+  int *Salida=malloc(8*sizeof(int));
   while(counter<8){
      Salida[counter]=Tabla[valor][counter];
      counter++;

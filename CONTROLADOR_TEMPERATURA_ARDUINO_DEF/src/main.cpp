@@ -13,7 +13,7 @@ int analogPin = 2;
 int interruptButton =2;
 void setup(){
 //configuracion de pines para visualizar
-int i;
+ int i;
  for(i=6;i<14;i++){
    pinMode(i,OUTPUT);
   }
@@ -31,13 +31,13 @@ void loop(){
 
   Measure=analogRead(analogPin);
   Value=((5*Measure)/1024);
-  Visualizacion(Value);
+  GetBoton(boton);
+
+
 }
 
 
 //atend_Interrupt
 void Interrupcion(){
-
- boton=Boton();
-
+boton=Conteo();
 }
