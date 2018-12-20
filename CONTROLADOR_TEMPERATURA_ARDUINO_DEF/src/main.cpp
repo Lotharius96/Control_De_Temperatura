@@ -11,6 +11,9 @@ float Value= 0;
 int boton = 0;
 int analogPin = 2;
 int interruptButton =2;
+Boton boton;
+Visualizacion visualizacion;
+Tabla_Lectura tabla_lectura;
 void setup(){
 //configuracion de pines para visualizar
  int i;
@@ -31,13 +34,13 @@ void loop(){
 
   Measure=analogRead(analogPin);
   Value=((5*Measure)/1024);
-  GetBoton(boton);
-
+  visualizacion.GetBoton(boton);
+  visualizacion.visual(Value);
 
 }
 
 
 //atend_Interrupt
 void Interrupcion(){
-boton=Conteo();
+boton=boton.Conteo();
 }

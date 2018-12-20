@@ -2,6 +2,9 @@
 #ifndef Visualizacion_H
 #define Visualizacion_H
 #include "Arduino.h"
+#include "Boton.h"
+#include "Tabla_Lectura.h"
+#include "BCD_Conversion.h"
 /////
  class Visualizacion{
     public:
