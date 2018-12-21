@@ -10,9 +10,9 @@
 //class Visualizacion{
   bool Control = false;
   int Boton_l=0;
-  Boton boton;
-  BCD_Conversion conversion;
-  Tabla_Lectura tabla_lectura;
+  //Boton boton;
+  BCD_Conversion conversionBCD;
+  Tabla_Lectura tabla_lecturaT;
 
 //  void  Visualizacion::Visual(float Measure);
   //void Visualizacion::GetBoton( int Boton_Value);
@@ -28,17 +28,17 @@ void  Visualizacion::Visual(float Measure)
   int Decena=0;
   int Centena=0;
   if(Boton_l==0){
-     Unidad=conversion.Lectura_Unidad(Measure);
-     Decena=conversion.Lectura_Decena(Measure);
-     Centena=conversion.Lectura_Centena(Measure);
+     Unidad=conversionBCD.Lectura_Unidad(Measure);
+     Decena=conversionBCD.Lectura_Decena(Measure);
+     Centena=conversionBCD.Lectura_Centena(Measure);
   }else if(Boton_l==1){
-     Unidad=conversion.Lectura_Unidad(MAX);
-     Decena=conversion.Lectura_Decena(MAX);
-     Centena=conversion.Lectura_Centena(MAX);
+     Unidad=conversionBCD.Lectura_Unidad(MAX);
+     Decena=conversionBCD.Lectura_Decena(MAX);
+     Centena=conversionBCD.Lectura_Centena(MAX);
    }else if(Boton_l==2){
-     Unidad=conversion.Lectura_Unidad(MIN);
-     Decena=conversion.Lectura_Decena(MIN);
-     Centena=conversion.Lectura_Centena(MIN);
+     Unidad=conversionBCD.Lectura_Unidad(MIN);
+     Decena=conversionBCD.Lectura_Decena(MIN);
+     Centena=conversionBCD.Lectura_Centena(MIN);
   }
 //////VISUALIZAR
 Visualizar(Unidad,Decena,Centena);
@@ -47,13 +47,13 @@ Visualizar(Unidad,Decena,Centena);
 void Visualizacion::Visualizar(int x, int y, int z)
 {
    int *Matriz;
-   Matriz=tabla_lectura.Tabla_Read(x);
+   Matriz=tabla_lecturaT.Tabla_Read(x);
    Matrix_Read(Matriz,false);
    delay(50);
-   Matriz=tabla_lectura.Tabla_Read(y);
+   Matriz=tabla_lecturaT.Tabla_Read(y);
    Matrix_Read(Matriz,false);
    delay(50);
-   Matriz=tabla_lectura.Tabla_Read(z);
+   Matriz=tabla_lecturaT.Tabla_Read(z);
    Matrix_Read(Matriz,false);
    delay(50);
    Matrix_Read(Matriz,true);
