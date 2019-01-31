@@ -47,15 +47,25 @@ Visualizar(Unidad,Decena,Centena);
 void Visualizacion::Visualizar(int x, int y, int z)
 {
    int *Matriz;
+   digitalWrite(3,HIGH);
    Matriz=tabla_lecturaT.Tabla_Read(x);
    Matrix_Read(Matriz,false);
+  
    delay(50);
+   digitalWrite(3,LOW);
+   digitalWrite(4,HIGH);
    Matriz=tabla_lecturaT.Tabla_Read(y);
    Matrix_Read(Matriz,false);
+   //digitalWrite(4,HIGH);
    delay(50);
+   digitalWrite(4,LOW);
+   digitalWrite(5,HIGH);
    Matriz=tabla_lecturaT.Tabla_Read(z);
+   //digitalWrite(5,HIGH);
    Matrix_Read(Matriz,false);
+   //digitalWrite(5,HIGH);
    delay(50);
+   digitalWrite(5,LOW);
    Matrix_Read(Matriz,true);
  }
 
