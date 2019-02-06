@@ -55,11 +55,11 @@
 
 	LIST P=18F25K50		;directive to define processor
 	
-#include "p18F25K50_fz.inc"
+#include "p18f25k50_fz.inc"
 	;processor specific variable definitions
 
 #define nobootloader 1			;nobootloader = 1 =  prog with pickit3 or similar or simulation
-
+#define version 2
 #include "25k50config.inc"  ;MCU configuration bits (heredada de bootloader)
 #include "vectors.inc"		;vectors remapping for bootloader
 #include "hwconfig.inc"				
@@ -103,6 +103,7 @@
 	val
 	nd
 	unidad
+        Boton1
 	EXAMPLE		;example of a variable in access RAM
 		ENDC
 ;******************************************************************************
@@ -166,7 +167,34 @@ RVIntL:
 ; The high priority interrupt code is placed here to avoid conflicting with
 ; the low priority interrupt vector.
 
-HighInt:
+;HighInt:
+High_Interrupt:  ;Interrupcion de prioridad alta
+  ; COmprobar 
+    btfss Intcon3, .0 ; boton de temperatura
+    bra $+4
+    call Checkboton1; 
+    ;btfss Incon3, 0 
+    ;bra $+4
+    ;call Checkboton2;    
+    bcf Intcon3, .1
+    ;bcf Intcon3, .0
+    bsf Intcon3, .3
+    ;bsf Incon3,  3
+    retfie fast
+
+ Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
+  bcf Intcon3, .3
+  DELAY1
+  Btfss portB, .0
+  bra $+4
+  incf Boton1
+  movlw 0x02
+  cpfsgt Boton1
+  bra $+4
+  clrf Boton1
+  return
+
+
 
 ;	*** high priority interrupt code goes here ***
 
@@ -178,7 +206,7 @@ HighInt:
 ;Start of main program
 ; The main program code is placed here.
 
-version equ 2		;versión 1 blinker básico o 2 doble led (requiere cablear)
+;version equ 2		;versión 1 blinker básico o 2 doble led (requiere cablear)
 		
 Main:
 ;	*** main code goes here ***
@@ -187,6 +215,7 @@ Main:
 	CALL SETUPADC
 LOOP
 	call CONVERSION
+        call CONTROL
 	CALL GENBCD
 	CALL visual
 	BRA LOOP
@@ -279,7 +308,7 @@ SETUPIO:
 #if version==2	
     CLRF PORTA
     CLRF PORTB
-    movlw 0xFF
+    movlw 0xFD ; puerto para la interrupcion boton rb1
     movwf ANSELB
     movlw 0xFF
     movwf ADCON1
@@ -289,12 +318,44 @@ SETUPIO:
     movwf TRISA
     movlw 0x00
     movwf TRISC
+    ;configura interrupcion
+    movlw 0xF0
+    movwf INTCON
+    movlw 0xF0
+    movwf INTCON2
+ ;   bcf INTXON2, INTEDG0
+    ;movwf INTCON2
+    movlw  0xD8      ;0x11011000
+    movwf INTCON3
+    BCF ANSELB,.3
+    
 		
 #endif
     
 		
 		RETURN
 #endif
+
+CONTROL:
+;00101000
+;00001111
+        movlw 0x02
+        cpfseq Boton1
+        bra $+4
+        call Maximo 
+        movlw 0x01
+        cpfseq Boton1
+        bra $+4
+        call Minimo
+                RETURN 
+Maximo:
+        movlw 0x28
+        movwf lect
+                RETURN
+Minimo:      
+        movlw 0x0F
+        movwf lect
+                RETURN
 		
 SETUPADC:
 	MOVLW b'00000101'
@@ -354,7 +415,7 @@ UNIDADES10
        MOVF lect,W
        movwf Unidades
        clrf lect
-       movf Decenas,W
+f       movf Decenas,W
        ;movwf PORTA
 
        

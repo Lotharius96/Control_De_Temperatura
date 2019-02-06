@@ -1,4 +1,4 @@
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  1
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -57,7 +57,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00051 ;* Ruta del .hex en proyecto.X: .dist/default/production/ (*.cof, .hex, .map)   
                       00052 ;* Haga RESET desde la app windows del bootloader o el botón en la CEX board 
                       00053 ;* y observe el funcionamiento de modificaciones del programa.
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  2
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -67,12 +67,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00055 
                       00056         LIST P=18F25K50         ;directive to define processor
                       00057         
-Error[105]  : Cannot open file (Include File "p18F25K50_fz.inc" not found)
-                      00058 #include "p18F25K50_fz.inc"
+Error[105]  : Cannot open file (Include File "p18f25k50_fz.inc" not found)
+                      00058 #include "p18f25k50_fz.inc"
                       00059         ;processor specific variable definitions
                       00060 
                       00061 #define nobootloader 1                  ;nobootloader = 1 =  prog with pickit3 or similar or simulation
-                      00062 
+                      00062 #define version 2
 Error[105]  : Cannot open file (Include File "25k50config.inc" not found)
                       00063 #include "25k50config.inc"  ;MCU configuration bits (heredada de bootloader)
 Error[105]  : Cannot open file (Include File "vectors.inc" not found)
@@ -116,7 +116,7 @@ Error[105]  : Cannot open file (Include File "hwconfig.inc" not found)
   0000000D            00100         puer
   0000000E            00101         rnu
   0000000F            00102         nu
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  3
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -125,440 +125,533 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000010            00103         val
   00000011            00104         nd
   00000012            00105         unidad
-  00000013            00106         EXAMPLE         ;example of a variable in access RAM
-                      00107                 ENDC
-                      00108 ;******************************************************************************
-                      00109 ;Constant  definitions
-                      00110 ;
-                      00111                 
+  00000013            00106         Boton1
+  00000014            00107         EXAMPLE         ;example of a variable in access RAM
+                      00108                 ENDC
+                      00109 ;******************************************************************************
+                      00110 ;Constant  definitions
+                      00111 ;
                       00112                 
                       00113                 
-                      00114 ;******************************************************************************
-                      00115 ;EEPROM data
-                      00116 ; Data to be programmed into the Data EEPROM is defined here
-                      00117 
-F00000                00118                 ORG     0xf00000
-                      00119 
-F00000 6554 7473 4420 00120                 DE      "Test Data",0,1,2,3,4,5
+                      00114                 
+                      00115 ;******************************************************************************
+                      00116 ;EEPROM data
+                      00117 ; Data to be programmed into the Data EEPROM is defined here
+                      00118 
+F00000                00119                 ORG     0xf00000
+                      00120 
+F00000 6554 7473 4420 00121                 DE      "Test Data",0,1,2,3,4,5
        7461 0061 0201 
        0403 0005 
-                      00121 
-                      00122 ;******************************************************************************
-                      00123 
+                      00122 
+                      00123 ;******************************************************************************
                       00124 
-                      00125 ;Reset vector
-                      00126 ; This code will start executing when a reset occurs.
-F00010                00127 Vectors:
+                      00125 
+                      00126 ;Reset vector
+                      00127 ; This code will start executing when a reset occurs.
+F00010                00128 Vectors:
 Error[149]  : Directive only allowed when generating an object file
 Error[113]  : Symbol not previously defined (REMAPPED_APP_RESET_VECTOR)
-                      00128 R_vectors      code     REMAPPED_APP_RESET_VECTOR
-000000                00129 RVReset:
-000000 EF0E F000      00130                 goto    Main            ;go to start of main code
-                      00131 
-                      00132 ;******************************************************************************
-                      00133 ;High priority interrupt vector
-                      00134 ; This code will start executing when a high priority interrupt occurs or
-                      00135 ; when any interrupt occurs if interrupt priorities are not enabled.
-                      00136 
+                      00129 R_vectors      code     REMAPPED_APP_RESET_VECTOR
+000000                00130 RVReset:
+000000 EF1E F000      00131                 goto    Main            ;go to start of main code
+                      00132 
+                      00133 ;******************************************************************************
+                      00134 ;High priority interrupt vector
+                      00135 ; This code will start executing when a high priority interrupt occurs or
+                      00136 ; when any interrupt occurs if interrupt priorities are not enabled.
+                      00137 
 Error[149]  : Directive only allowed when generating an object file
 Error[113]  : Symbol not previously defined (REMAPPED_APP_HIGH_ISR_VECTOR)
-                      00137 R_IntH        code    REMAPPED_APP_HIGH_ISR_VECTOR
-000000                00138 RVIntH:
+                      00138 R_IntH        code    REMAPPED_APP_HIGH_ISR_VECTOR
+000000                00139 RVIntH:
+Error[113]  : Symbol not previously defined (HighInt)
 Error[118]  : Overwriting previous address contents (0000)
 Error[118]  : Overwriting previous address contents (0001)
-000000 D00C           00139                 bra     HighInt         ;go to high priority interrupt routine
-                      00140 
-                      00141 ;******************************************************************************
-                      00142 ;Low priority interrupt vector and routine
-                      00143 ; This code will start executing when a low priority interrupt occurs.
-                      00144 ; This code can be removed if low priority interrupts are not used.
-                      00145 
-Error[149]  : Directive only allowed when generating an object file
-Error[113]  : Symbol not previously defined (REMAPPED_APP_LOW_ISR_VECTOR)
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  4
+000000 D7FF           00140                 bra     HighInt         ;go to high priority interrupt routine
+                      00141 
+                      00142 ;******************************************************************************
+                      00143 ;Low priority interrupt vector and routine
+                      00144 ; This code will start executing when a low priority interrupt occurs.
+                      00145 ; This code can be removed if low priority interrupts are not used.
+                      00146 
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00146 R_IntL        code     REMAPPED_APP_LOW_ISR_VECTOR
-000000                00147 RVIntL:
+Error[149]  : Directive only allowed when generating an object file
+Error[113]  : Symbol not previously defined (REMAPPED_APP_LOW_ISR_VECTOR)
+                      00147 R_IntL        code     REMAPPED_APP_LOW_ISR_VECTOR
+000000                00148 RVIntL:
 Error[113]  : Symbol not previously defined (STATUS)
 Error[118]  : Overwriting previous address contents (0000)
 Error[118]  : Overwriting previous address contents (0001)
 Error[118]  : Overwriting previous address contents (0002)
 Error[118]  : Overwriting previous address contents (0003)
-000000 C000 F051      00148                 movff   STATUS,STATUS_TEMP      ;save STATUS register
+000000 C000 F051      00149                 movff   STATUS,STATUS_TEMP      ;save STATUS register
 Error[113]  : Symbol not previously defined (WREG)
-000004 C000 F050      00149                 movff   WREG,WREG_TEMP          ;save working register
+000004 C000 F050      00150                 movff   WREG,WREG_TEMP          ;save working register
 Error[113]  : Symbol not previously defined (BSR)
-000008 C000 F052      00150                 movff   BSR,BSR_TEMP            ;save BSR register
-                      00151 
-                      00152 ;       *** low priority interrupt code goes here ***
-                      00153 
+000008 C000 F052      00151                 movff   BSR,BSR_TEMP            ;save BSR register
+                      00152 
+                      00153 ;       *** low priority interrupt code goes here ***
                       00154 
+                      00155 
 Error[113]  : Symbol not previously defined (BSR)
-00000C C052 F000      00155                 movff   BSR_TEMP,BSR            ;restore BSR register
+00000C C052 F000      00156                 movff   BSR_TEMP,BSR            ;restore BSR register
 Error[113]  : Symbol not previously defined (WREG)
-000010 C050 F000      00156                 movff   WREG_TEMP,WREG          ;restore working register
+000010 C050 F000      00157                 movff   WREG_TEMP,WREG          ;restore working register
 Error[113]  : Symbol not previously defined (STATUS)
-000014 C051 F000      00157                 movff   STATUS_TEMP,STATUS      ;restore STATUS register
-000018 0010           00158                 retfie
-                      00159 
-                      00160 ;******************************************************************************
-                      00161 ;High memory PCL tables 
-                      00162                 
+000014 C051 F000      00158                 movff   STATUS_TEMP,STATUS      ;restore STATUS register
+000018 0010           00159                 retfie
+                      00160 
+                      00161 ;******************************************************************************
+                      00162 ;High memory PCL tables 
                       00163                 
-                      00164 ;******************************************************************************         
-                      00165 ;High priority interrupt routine
-                      00166 ; The high priority interrupt code is placed here to avoid conflicting with
-                      00167 ; the low priority interrupt vector.
-                      00168 
-00001A                00169 HighInt:
-                      00170 
-                      00171 ;       *** high priority interrupt code goes here ***
-                      00172 
-                      00173 
-Error[113]  : Symbol not previously defined (FAST)
-00001A 0010           00174                 retfie  FAST
-                      00175 
-                      00176 
-                      00177 ;******************************************************************************
-                      00178 ;Start of main program
-                      00179 ; The main program code is placed here.
-                      00180 
-  00000002            00181 version equ 2           ;versión 1 blinker básico o 2 doble led (requiere cablear)
-                      00182                 
-00001C                00183 Main:
-                      00184 ;       *** main code goes here ***
-00001C EC3C F000      00185         call SETUPOSC   ;configura oscilador interno 16MHz ?!
-000020 EC43 F000      00186         call SETUPIO    ;configura LED1,2,3 y botones (pull ups)
-000024 EC50 F000      00187         CALL SETUPADC
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  5
+                      00164                 
+                      00165 ;******************************************************************************         
+                      00166 ;High priority interrupt routine
+                      00167 ; The high priority interrupt code is placed here to avoid conflicting with
+                      00168 ; the low priority interrupt vector.
+                      00169 
+                      00170 ;HighInt:
+00001A                00171 High_Interrupt:  ;Interrupcion de prioridad alta
+                      00172   ; COmprobar 
+Error[113]  : Symbol not previously defined (Intcon3)
+00001A A100           00173     btfss Intcon3, .0 ; boton de temperatura
+00001C D001           00174     bra $+4
+00001E EC14 F000      00175     call Checkboton1; 
+                      00176     ;btfss Incon3, 0 
+                      00177     ;bra $+4
+                      00178     ;call Checkboton2;    
+Error[113]  : Symbol not previously defined (Intcon3)
+000022 9300           00179     bcf Intcon3, .1
+                      00180     ;bcf Intcon3, .0
+Error[113]  : Symbol not previously defined (Intcon3)
+000024 8700           00181     bsf Intcon3, .3
+                      00182     ;bsf Incon3,  3
+Error[113]  : Symbol not previously defined (fast)
+000026 0010           00183     retfie fast
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-000028                00188 LOOP
-000028 EC57 F000      00189         call CONVERSION
-00002C EC61 F000      00190         CALL GENBCD
-000030 EC8B F000      00191         CALL visual
-000034 D7F9           00192         BRA LOOP
-                      00193 
-                      00194 ;*******
-                      00195 
-                      00196    ; BSF                pLED1                   ; apaga cátodo LED (Green)
-                      00197                         ; repite indefinidamente
+                      00184 
+Warning[207]: Found label after column 1. (Checkboton1)
+000028                00185  Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
+Error[113]  : Symbol not previously defined (Intcon3)
+000028 9700           00186   bcf Intcon3, .3
+Warning[207]: Found label after column 1. (DELAY1)
+00002A                00187   DELAY1
+Error[113]  : Symbol not previously defined (portB)
+00002A A100           00188   Btfss portB, .0
+00002C D001           00189   bra $+4
+00002E 2B13           00190   incf Boton1
+000030 0E02           00191   movlw 0x02
+000032 6513           00192   cpfsgt Boton1
+000034 D001           00193   bra $+4
+000036 6B13           00194   clrf Boton1
+000038 0012           00195   return
+                      00196 
+                      00197 
                       00198 
-                      00199 ;******************************************************************************
-                      00200 ;subroutines:
-                      00201 ; Delay = 0.5 seconds
-                      00202 ; Clock frequency = 16 MHz ??
+                      00199 ;       *** high priority interrupt code goes here ***
+                      00200 
+                      00201 
+Error[113]  : Symbol not previously defined (FAST)
+00003A 0010           00202                 retfie  FAST
                       00203 
-                      00204 ; Actual delay = 0.5 seconds = 2000000 cycles
-                      00205 ; Error = 0 %
-                      00206 
-                      00207         
+                      00204 
+                      00205 ;******************************************************************************
+                      00206 ;Start of main program
+                      00207 ; The main program code is placed here.
                       00208 
-000036                00209 Delay05s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
-                      00210                                 ;  ajustando código a PIC18F - PC alineado)
-                      00211                         ;1999996 cycles
-000036 0E11           00212         movlw   0x11
-000038 6F00           00213         movwf   d1
-00003A 0E5D           00214         movlw   0x5D
-00003C 6F01           00215         movwf   d2
-00003E 0E05           00216         movlw   0x05
-000040 6F02           00217         movwf   d3
-000042                00218 Delay05s_0
-000042 2F00           00219         decfsz  d1, f
-000044 EF25 F000      00220         goto    $+6
-000048 2F01           00221         decfsz  d2, f
-00004A EF28 F000      00222         goto    $+6
-00004E 2F02           00223         decfsz  d3, f
-000050 EF21 F000      00224         goto    Delay05s_0
-                      00225 
-                      00226                         ;4 cycles (including call)
-000054 0012           00227         return
-                      00228 
-                      00229         
-000056                00230 Delay01s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
-                      00231                                 ;  ajustando código a PIC18F - PC alineado)
-                      00232                         ;1999996 cycles
-000056 0EFF           00233         movlw   0xFF
-000058 6F00           00234         movwf   d1
-00005A 0E19           00235         movlw   0x19
-00005C 6F01           00236         movwf   d2
-00005E                00237 Delay01s_0
-00005E 2F00           00238         decfsz  d1, f
-000060 EF33 F000      00239         goto    $+6
-000064 2F01           00240         decfsz  d2, f
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  6
+Error[108]  : Illegal character (2)
+                      00209 version equ 2           ;versión 1 blinker básico o 2 doble led (requiere cablear)
+                      00210                 
+00003C                00211 Main:
+                      00212 ;       *** main code goes here ***
+00003C EC4E F000      00213         call SETUPOSC   ;configura oscilador interno 16MHz ?!
+000040 EC55 F000      00214         call SETUPIO    ;configura LED1,2,3 y botones (pull ups)
+000044 EC7A F000      00215         CALL SETUPADC
+000048                00216 LOOP
+000048 EC81 F000      00217         call CONVERSION
+00004C EC69 F000      00218         call CONTROL
+000050 EC8B F000      00219         CALL GENBCD
+000054 ECB5 F000      00220         CALL visual
+000058 D7F7           00221         BRA LOOP
+                      00222 
+                      00223 ;*******
+                      00224 
+                      00225    ; BSF                pLED1                   ; apaga cátodo LED (Green)
+                      00226                         ; repite indefinidamente
+                      00227 
+                      00228 ;******************************************************************************
+                      00229 ;subroutines:
+                      00230 ; Delay = 0.5 seconds
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-000066 EF2F F000      00241         goto    Delay01s_0
-                      00242 
-                      00243                         ;4 cycles (including call)
-00006A 0012           00244         return
-                      00245         
-                      00246 
-00006C                00247 DELAY1
-00006C 0E30           00248     movlw 0x30
-00006E 6F00           00249     movwf d1
-000070 2F00           00250 DELAY1_0 decfsz d1,f
-000072 EF38 F000      00251     goto DELAY1_0
-000076 0012           00252     return
-                      00253 
-                      00254 ;*************SUBROUTINES******************************************************
-000078                00255 SETUPOSC:
-000078 0E80           00256                 movlw   0x80
+                      00231 ; Clock frequency = 16 MHz ??
+                      00232 
+                      00233 ; Actual delay = 0.5 seconds = 2000000 cycles
+                      00234 ; Error = 0 %
+                      00235 
+                      00236         
+                      00237 
+00005A                00238 Delay05s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
+                      00239                                 ;  ajustando código a PIC18F - PC alineado)
+                      00240                         ;1999996 cycles
+00005A 0E11           00241         movlw   0x11
+00005C 6F00           00242         movwf   d1
+00005E 0E5D           00243         movlw   0x5D
+000060 6F01           00244         movwf   d2
+000062 0E05           00245         movlw   0x05
+000064 6F02           00246         movwf   d3
+000066                00247 Delay05s_0
+000066 2F00           00248         decfsz  d1, f
+000068 EF37 F000      00249         goto    $+6
+00006C 2F01           00250         decfsz  d2, f
+00006E EF3A F000      00251         goto    $+6
+000072 2F02           00252         decfsz  d3, f
+000074 EF33 F000      00253         goto    Delay05s_0
+                      00254 
+                      00255                         ;4 cycles (including call)
+000078 0012           00256         return
+                      00257 
+                      00258         
+00007A                00259 Delay01s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
+                      00260                                 ;  ajustando código a PIC18F - PC alineado)
+                      00261                         ;1999996 cycles
+00007A 0EFF           00262         movlw   0xFF
+00007C 6F00           00263         movwf   d1
+00007E 0E19           00264         movlw   0x19
+000080 6F01           00265         movwf   d2
+000082                00266 Delay01s_0
+000082 2F00           00267         decfsz  d1, f
+000084 EF45 F000      00268         goto    $+6
+000088 2F01           00269         decfsz  d2, f
+00008A EF41 F000      00270         goto    Delay01s_0
+                      00271 
+                      00272                         ;4 cycles (including call)
+00008E 0012           00273         return
+                      00274         
+                      00275 
+Error[116]  : Address label duplicated or different in second pass (DELAY1)
+000090                00276 DELAY1
+000090 0E30           00277     movlw 0x30
+000092 6F00           00278     movwf d1
+000094 2F00           00279 DELAY1_0 decfsz d1,f
+000096 EF4A F000      00280     goto DELAY1_0
+00009A 0012           00281     return
+                      00282 
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00283 ;*************SUBROUTINES******************************************************
+00009C                00284 SETUPOSC:
+00009C 0E80           00285                 movlw   0x80
 Error[113]  : Symbol not previously defined (OSCTUNE)
-00007A 5300           00257                 movf    OSCTUNE                                 ; 3X PLL ratio mode selected
-00007C 0E72           00258                 movlw   0x72
+00009E 5300           00286                 movf    OSCTUNE                                 ; 3X PLL ratio mode selected
+0000A0 0E72           00287                 movlw   0x72
 Error[113]  : Symbol not previously defined (OSCCON)
-00007E 6F00           00259                 movwf   OSCCON                                  ; Switch to 16MHz HFINTOSC
-000080 0E10           00260                 movlw   0x10
+0000A2 6F00           00288                 movwf   OSCCON                                  ; Switch to 16MHz HFINTOSC
+0000A4 0E10           00289                 movlw   0x10
 Error[113]  : Symbol not previously defined (OSCCON2)
-000082 6F00           00261                 movwf   OSCCON2                                 ; Enable PLL, SOSC, PRI OSC drivers turn
+0000A6 6F00           00290                 movwf   OSCCON2                                 ; Enable PLL, SOSC, PRI OSC drivers turn
                             ed off
-                      00262 #if 0       ; habilitar solo si se usa PLL para oscildor interno
-                      00263 PLL_Redy_loop
-                      00264                 btfss   OSCCON2, PLLRDY
-                      00265                 bra             PLL_Redy_loop                   ; Wait for PLL lock
-                      00266                 movlw   0x90
-                      00267                 movwf   ACTCON
-                      00268 #endif
-                      00269                 
-000084 0012           00270                 RETURN
-                      00271 #if 1
-000086                00272 SETUPIO:
-                      00273         ;CLRF    LATA
-                      00274         ;CLRF   LATB
-                      00275         
-                      00276         ;BCF            anLED1          ; con ayuda de definiciones hwconfig.inc se definen pines I/O
-                      00277         ;BCF            tLED1   ;out
-                      00278 
-                      00279 #if version==2  
-Error[113]  : Symbol not previously defined (PORTA)
-000086 6B00           00280     CLRF PORTA
-Error[113]  : Symbol not previously defined (PORTB)
-000088 6B00           00281     CLRF PORTB
-00008A 0EFF           00282     movlw 0xFF
-Error[113]  : Symbol not previously defined (ANSELB)
-00008C 6F00           00283     movwf ANSELB
-00008E 0EFF           00284     movlw 0xFF
-Error[113]  : Symbol not previously defined (ADCON1)
-000090 6F00           00285     movwf ADCON1
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  7
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-000092 0EFF           00286     movlw 0xFF
-Error[113]  : Symbol not previously defined (TRISB)
-000094 6F00           00287     movwf TRISB
-000096 0E00           00288     movlw 0x00
-Error[113]  : Symbol not previously defined (TRISA)
-000098 6F00           00289     movwf TRISA
-00009A 0E00           00290     movlw 0x00
-Error[113]  : Symbol not previously defined (TRISC)
-00009C 6F00           00291     movwf TRISC
-                      00292                 
-                      00293 #endif
-                      00294     
-                      00295                 
-00009E 0012           00296                 RETURN
+                      00291 #if 0       ; habilitar solo si se usa PLL para oscildor interno
+                      00292 PLL_Redy_loop
+                      00293                 btfss   OSCCON2, PLLRDY
+                      00294                 bra             PLL_Redy_loop                   ; Wait for PLL lock
+                      00295                 movlw   0x90
+                      00296                 movwf   ACTCON
                       00297 #endif
                       00298                 
-0000A0                00299 SETUPADC:
-0000A0 0E05           00300         MOVLW b'00000101'
-Error[113]  : Symbol not previously defined (ADCON2)
-0000A2 6F00           00301         MOVWF ADCON2
-0000A4 0E00           00302         MOVLW b'00000000'
+0000A8 0012           00299                 RETURN
+                      00300 #if 1
+0000AA                00301 SETUPIO:
+                      00302         ;CLRF    LATA
+                      00303         ;CLRF   LATB
+                      00304         
+                      00305         ;BCF            anLED1          ; con ayuda de definiciones hwconfig.inc se definen pines I/O
+                      00306         ;BCF            tLED1   ;out
+                      00307 
+                      00308 #if version==2  
+Error[113]  : Symbol not previously defined (PORTA)
+0000AA 6B00           00309     CLRF PORTA
+Error[113]  : Symbol not previously defined (PORTB)
+0000AC 6B00           00310     CLRF PORTB
+0000AE 0EFD           00311     movlw 0xFD ; puerto para la interrupcion boton rb1
+Error[113]  : Symbol not previously defined (ANSELB)
+0000B0 6F00           00312     movwf ANSELB
+0000B2 0EFF           00313     movlw 0xFF
 Error[113]  : Symbol not previously defined (ADCON1)
-0000A6 6F00           00303         MOVWF ADCON1
-0000A8 0E25           00304         MOVLW b'00100101'
+0000B4 6F00           00314     movwf ADCON1
+0000B6 0EFF           00315     movlw 0xFF
+Error[113]  : Symbol not previously defined (TRISB)
+0000B8 6F00           00316     movwf TRISB
+0000BA 0E00           00317     movlw 0x00
+Error[113]  : Symbol not previously defined (TRISA)
+0000BC 6F00           00318     movwf TRISA
+0000BE 0E00           00319     movlw 0x00
+Error[113]  : Symbol not previously defined (TRISC)
+0000C0 6F00           00320     movwf TRISC
+                      00321     ;configura interrupcion
+0000C2 0EF0           00322     movlw 0xF0
+Error[113]  : Symbol not previously defined (INTCON)
+0000C4 6F00           00323     movwf INTCON
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0000C6 0EF0           00324     movlw 0xF0
+Error[113]  : Symbol not previously defined (INTCON2)
+0000C8 6F00           00325     movwf INTCON2
+                      00326  ;   bcf INTXON2, INTEDG0
+                      00327     ;movwf INTCON2
+0000CA 0ED8           00328     movlw  0xD8      ;0x11011000
+Error[113]  : Symbol not previously defined (INTCON3)
+0000CC 6F00           00329     movwf INTCON3
+Error[113]  : Symbol not previously defined (ANSELB)
+0000CE 9700           00330     BCF ANSELB,.3
+                      00331     
+                      00332                 
+                      00333 #endif
+                      00334     
+                      00335                 
+0000D0 0012           00336                 RETURN
+                      00337 #endif
+                      00338 
+0000D2                00339 CONTROL:
+                      00340 ;00101000
+                      00341 ;00001111
+0000D2 0E02           00342         movlw 0x02
+0000D4 6313           00343         cpfseq Boton1
+0000D6 D001           00344         bra $+4
+0000D8 EC74 F000      00345         call Maximo 
+0000DC 0E01           00346         movlw 0x01
+0000DE 6313           00347         cpfseq Boton1
+0000E0 D001           00348         bra $+4
+0000E2 EC77 F000      00349         call Minimo
+0000E6 0012           00350                 RETURN 
+0000E8                00351 Maximo:
+0000E8 0E28           00352         movlw 0x28
+0000EA 6F03           00353         movwf lect
+0000EC 0012           00354                 RETURN
+0000EE                00355 Minimo:      
+0000EE 0E0F           00356         movlw 0x0F
+0000F0 6F03           00357         movwf lect
+0000F2 0012           00358                 RETURN
+                      00359                 
+0000F4                00360 SETUPADC:
+0000F4 0E05           00361         MOVLW b'00000101'
+Error[113]  : Symbol not previously defined (ADCON2)
+0000F6 6F00           00362         MOVWF ADCON2
+0000F8 0E00           00363         MOVLW b'00000000'
+Error[113]  : Symbol not previously defined (ADCON1)
+0000FA 6F00           00364         MOVWF ADCON1
+0000FC 0E25           00365         MOVLW b'00100101'
 Error[113]  : Symbol not previously defined (ADCON0)
-0000AA 6F00           00305         MOVWF ADCON0
-                      00306     
-0000AC 0012           00307                 RETURN
-                      00308     
-0000AE                00309 CONVERSION:
+0000FE 6F00           00366         MOVWF ADCON0
+                      00367     
+000100 0012           00368                 RETURN
+                      00369     
+000102                00370 CONVERSION:
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 Error[113]  : Symbol not previously defined (GO)
 Error[113]  : Symbol not previously defined (ADCON0)
-0000AE 8100           00310         BSF ADCON0,GO
-0000B0                00311 espera 
+000102 8100           00371         BSF ADCON0,GO
+000104                00372 espera 
 Error[113]  : Symbol not previously defined (GO)
 Error[113]  : Symbol not previously defined (ADCON0)
-0000B0 B100           00312         BTFSC ADCON0,GO
-0000B2 D7FE           00313         BRA espera
+000104 B100           00373         BTFSC ADCON0,GO
+000106 D7FE           00374         BRA espera
 Error[113]  : Symbol not previously defined (ADRESH)
-0000B4 5100           00314         MOVF ADRESH,W
-0000B6 6F03           00315         MOVWF lect
-0000B8 0E32           00316         movlw d'50'
-0000BA 6F04           00317         movwf dato
-0000BC 0E05           00318         movlw d'5'
-0000BE 6F05           00319         movwf dato2
-                      00320 ;       
-0000C0 0012           00321                 RETURN
-                      00322                 
-0000C2                00323 GENBCD:
-0000C2 6B06           00324        CLRF Unidades
-0000C4 6B08           00325        clrf Decenas
-0000C6 6B07           00326        clrf Centenas
-                      00327             
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  8
+000108 5100           00375         MOVF ADRESH,W
+00010A 6F03           00376         MOVWF lect
+00010C 0E32           00377         movlw d'50'
+00010E 6F04           00378         movwf dato
+000110 0E05           00379         movlw d'5'
+000112 6F05           00380         movwf dato2
+                      00381 ;       
+000114 0012           00382                 RETURN
+                      00383                 
+000116                00384 GENBCD:
+000116 6B06           00385        CLRF Unidades
+000118 6B08           00386        clrf Decenas
+00011A 6B07           00387        clrf Centenas
+                      00388             
+                      00389        ;Comienza el proceso de otención de valores BCD 
+                      00390        ;para Centenas, Decenas y unidades atraves de restas
+                      00391        ;sucesivas.
+00011C                00392 CENTENAS1
+00011C 5104           00393        movf dato,W      ;W=d'100'
+00011E 5D03           00394        subwf lect,W     ;Resto - d'100' (W)
+Error[113]  : Symbol not previously defined (C)
+Error[113]  : Symbol not previously defined (STATUS)
+000120 A100           00395        btfss STATUS,C    ;Resto menor que d'100'?
+000122 EF99 F000      00396        goto DECENAS1     ;SI
+000126 6F03           00397        movwf lect       ;NO, Salva el resto
+000128 0E01           00398        movlw d'1'
+00012A 2507           00399        ADDWF Centenas,W
+00012C 6F07           00400        movwf Centenas
+00012E EF8E F000      00401        goto CENTENAS1    ;Realiza otra resta
+                      00402        
+000132                00403 DECENAS1
+000132 5105           00404        movf dato2,W      ;W=d'10'
+000134 5D03           00405        subwf lect,W     ;Resto - d'10' (W)
+Error[113]  : Symbol not previously defined (C)
+Error[113]  : Symbol not previously defined (STATUS)
+000136 A100           00406        btfss STATUS,C    ;Resto menor que d'10'?
+000138 EFA4 F000      00407        goto UNIDADES10    ;Si
+00013C 6F03           00408        movwf lect       ;No, Salva el resto
+00013E 0E01           00409        movlw d'1'
+000140 2508           00410        ADDWF Decenas,W
+000142 6F08           00411        movwf Decenas
+000144 EF99 F000      00412        goto DECENAS1     ;Realiza otra resta
+                      00413            
+000148                00414 UNIDADES10
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00328        ;Comienza el proceso de otención de valores BCD 
-                      00329        ;para Centenas, Decenas y unidades atraves de restas
-                      00330        ;sucesivas.
-0000C8                00331 CENTENAS1
-0000C8 5104           00332        movf dato,W      ;W=d'100'
-0000CA 5D03           00333        subwf lect,W     ;Resto - d'100' (W)
-Error[113]  : Symbol not previously defined (C)
-Error[113]  : Symbol not previously defined (STATUS)
-0000CC A100           00334        btfss STATUS,C    ;Resto menor que d'100'?
-0000CE EF6F F000      00335        goto DECENAS1     ;SI
-0000D2 6F03           00336        movwf lect       ;NO, Salva el resto
-0000D4 0E01           00337        movlw d'1'
-0000D6 2507           00338        ADDWF Centenas,W
-0000D8 6F07           00339        movwf Centenas
-0000DA EF64 F000      00340        goto CENTENAS1    ;Realiza otra resta
-                      00341        
-0000DE                00342 DECENAS1
-0000DE 5105           00343        movf dato2,W      ;W=d'10'
-0000E0 5D03           00344        subwf lect,W     ;Resto - d'10' (W)
-Error[113]  : Symbol not previously defined (C)
-Error[113]  : Symbol not previously defined (STATUS)
-0000E2 A100           00345        btfss STATUS,C    ;Resto menor que d'10'?
-0000E4 EF7A F000      00346        goto UNIDADES10    ;Si
-0000E8 6F03           00347        movwf lect       ;No, Salva el resto
-0000EA 0E01           00348        movlw d'1'
-0000EC 2508           00349        ADDWF Decenas,W
-0000EE 6F08           00350        movwf Decenas
-0000F0 EF6F F000      00351        goto DECENAS1     ;Realiza otra resta
-                      00352            
-0000F4                00353 UNIDADES10
-0000F4 5103           00354        MOVF lect,W
-0000F6 6F06           00355        movwf Unidades
-0000F8 6B03           00356        clrf lect
-0000FA 5108           00357        movf Decenas,W
-                      00358        ;movwf PORTA
-                      00359 
-                      00360        
-0000FC 0012           00361     RETURN
-                      00362     
-                      00363 
-0000FE                00364 TABLA: 
-                      00365 
+000148 5103           00415        MOVF lect,W
+00014A 6F06           00416        movwf Unidades
+00014C 6B03           00417        clrf lect
+00014E 5108           00418 f       movf Decenas,W
+                      00419        ;movwf PORTA
+                      00420 
+                      00421        
+000150 0012           00422     RETURN
+                      00423     
+                      00424 
+000152                00425 TABLA: 
+                      00426 
 Error[113]  : Symbol not previously defined (PCL)
-0000FE 2700           00366      ADDWF      PCL,F
-000100 0C3F           00367     RETLW       b'0111111'
-000102 0C06           00368     RETLW       b'0000110'
-000104 0C5B           00369     RETLW       b'1011011'
-000106 0C4F           00370     RETLW       b'1001111'
-000108 0C66           00371     RETLW       b'1100110'
-00010A 0C6D           00372     RETLW       b'1101101'
-00010C 0C7D           00373     RETLW       b'1111101'
-00010E 0C47           00374     RETLW       b'1000111'
-000110 0C7F           00375     RETLW       b'1111111'  
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE  9
+000152 2700           00427      ADDWF      PCL,F
+000154 0C3F           00428     RETLW       b'0111111'
+000156 0C06           00429     RETLW       b'0000110'
+000158 0C5B           00430     RETLW       b'1011011'
+00015A 0C4F           00431     RETLW       b'1001111'
+00015C 0C66           00432     RETLW       b'1100110'
+00015E 0C6D           00433     RETLW       b'1101101'
+000160 0C7D           00434     RETLW       b'1111101'
+000162 0C47           00435     RETLW       b'1000111'
+000164 0C7F           00436     RETLW       b'1111111'  
+000166 0C67           00437     RETLW       b'1100111'  
+                      00438     
+000168 0012           00439     RETURN
+                      00440  
+                      00441     
+                      00442     
+00016A                00443 visual:  
+                      00444     
+00016A 4508           00445     RLNCF Decenas,W   ;Imprime el dígito de las centenas
+00016C ECA9 F000      00446     call TABLA
+Error[113]  : Symbol not previously defined (LATA)
+000170 6F00           00447     movwf LATA
+Error[113]  : Symbol not previously defined (LATC)
+000172 8300           00448     BSF LATC,.1
+000174 EC3D F000      00449     CALL Delay01s
+Error[113]  : Symbol not previously defined (LATC)
+000178 9300           00450     BCF LATC,.1
+                      00451     ;CALL Delay01s
+                      00452 
+00017A 4507           00453     RLNCF Centenas,W   ;Imprime el dígito de las centenas
+00017C ECA9 F000      00454     call TABLA
+Error[113]  : Symbol not previously defined (LATA)
+000180 6F00           00455     movwf LATA
+Error[113]  : Symbol not previously defined (LATC)
+000182 8100           00456     BSF LATC,.0
+000184 EC3D F000      00457     CALL Delay01s
+Error[113]  : Symbol not previously defined (LATC)
+000188 9100           00458     BCF LATC,.0
+                      00459     ;CALL Delay01s
+                      00460     
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-000112 0C67           00376     RETLW       b'1100111'  
-                      00377     
-000114 0012           00378     RETURN
-                      00379  
-                      00380     
-                      00381     
-000116                00382 visual:  
-                      00383     
-000116 4508           00384     RLNCF Decenas,W   ;Imprime el dígito de las centenas
-000118 EC7F F000      00385     call TABLA
+00018A 4506           00461     RLNCF Unidades,W   ;Imprime el dígito de las centenas
+00018C ECA9 F000      00462     call TABLA
 Error[113]  : Symbol not previously defined (LATA)
-00011C 6F00           00386     movwf LATA
+000190 6F00           00463     movwf LATA
 Error[113]  : Symbol not previously defined (LATC)
-00011E 8300           00387     BSF LATC,.1
-000120 EC2B F000      00388     CALL Delay01s
+000192 8500           00464     BSF LATC,.2
+000194 EC3D F000      00465     CALL Delay01s
 Error[113]  : Symbol not previously defined (LATC)
-000124 9300           00389     BCF LATC,.1
-                      00390     ;CALL Delay01s
-                      00391 
-000126 4507           00392     RLNCF Centenas,W   ;Imprime el dígito de las centenas
-000128 EC7F F000      00393     call TABLA
-Error[113]  : Symbol not previously defined (LATA)
-00012C 6F00           00394     movwf LATA
-Error[113]  : Symbol not previously defined (LATC)
-00012E 8100           00395     BSF LATC,.0
-000130 EC2B F000      00396     CALL Delay01s
-Error[113]  : Symbol not previously defined (LATC)
-000134 9100           00397     BCF LATC,.0
-                      00398     ;CALL Delay01s
-                      00399     
-000136 4506           00400     RLNCF Unidades,W   ;Imprime el dígito de las centenas
-000138 EC7F F000      00401     call TABLA
-Error[113]  : Symbol not previously defined (LATA)
-00013C 6F00           00402     movwf LATA
-Error[113]  : Symbol not previously defined (LATC)
-00013E 8500           00403     BSF LATC,.2
-000140 EC2B F000      00404     CALL Delay01s
-Error[113]  : Symbol not previously defined (LATC)
-000144 9500           00405     BCF LATC,.2
-                      00406     ;CALL Delay01s
-                      00407     
-000146 0012           00408     RETURN
-                      00409 
-                      00410     
-                      00411 ;******************************************************************************
-                      00412 ;End of program
-                      00413 
-                      00414                 END
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE 10
+000198 9500           00466     BCF LATC,.2
+                      00467     ;CALL Delay01s
+                      00468     
+00019A 0012           00469     RETURN
+                      00470 
+                      00471     
+                      00472 ;******************************************************************************
+                      00473 ;End of program
+                      00474 
+                      00475                 END
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE 12
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
 BSR_TEMP                          00000052
-CENTENAS1                         000000C8
-CONVERSION                        000000AE
+Boton1                            00000013
+CENTENAS1                         0000011C
+CONTROL                           000000D2
+CONVERSION                        00000102
 Centenas                          00000007
 Centenas2                         0000000A
-DECENAS1                          000000DE
-DELAY1                            0000006C
-DELAY1_0                          00000070
+Checkboton1                       00000028
+DECENAS1                          00000132
+DELAY1                            0000002A
+DELAY1_0                          00000094
 Decenas                           00000008
 Decenas2                          0000000B
-Delay01s                          00000056
-Delay01s_0                        0000005E
-Delay05s                          00000036
-Delay05s_0                        00000042
-EXAMPLE                           00000013
-GENBCD                            000000C2
-HighInt                           0000001A
-LOOP                              00000028
-Main                              0000001C
+Delay01s                          0000007A
+Delay01s_0                        00000082
+Delay05s                          0000005A
+Delay05s_0                        00000066
+EXAMPLE                           00000014
+GENBCD                            00000116
+High_Interrupt                    0000001A
+LOOP                              00000048
+Main                              0000003C
+Maximo                            000000E8
+Minimo                            000000EE
 RVIntH                            00000000
 RVIntL                            00000000
 RVReset                           00000000
-SETUPADC                          000000A0
-SETUPIO                           00000086
-SETUPOSC                          00000078
+SETUPADC                          000000F4
+SETUPIO                           000000AA
+SETUPOSC                          0000009C
 STATUS_TEMP                       00000051
-TABLA                             000000FE
+TABLA                             00000152
 UNIDADES1                         00000009
-UNIDADES10                        000000F4
+UNIDADES10                        00000148
 UNIDADES2                         0000000C
 Unidades                          00000006
 Vectors                           00F00010
@@ -569,7 +662,8 @@ d2                                00000001
 d3                                00000002
 dato                              00000004
 dato2                             00000005
-espera                            000000B0
+espera                            00000104
+f                                 0000014E
 lect                              00000003
 nd                                00000011
 nobootloader                      1
@@ -577,31 +671,36 @@ nu                                0000000F
 puer                              0000000D
 rnu                               0000000E
 unidad                            00000012
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-6-2019  0:15:52         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 val                               00000010
-version                           00000002
-visual                            00000116
-MPASM 5.73  /HOME/LOTHARIUS16/GITS/CONTROL_D   10-7-2018  18:26:05         PAGE 11
+version                           2
+visual                            0000016A
 
 
 MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
-
 
 0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
 0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
 0080 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
 00C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
 0100 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
-0140 : XXXXXXXX-------- ---------------- ---------------- ----------------
+0140 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0180 : XXXXXXXXXXXXXXXX XXXXXXXXXXXX---- ---------------- ----------------
 0000 : XXXXXXXXXXXXXXXX ---------------- ---------------- ----------------
 
 All other memory blocks unused.
 
-Program Memory Bytes Used:   344
-Program Memory Bytes Free: 32424
+Program Memory Bytes Used:   428
+Program Memory Bytes Free: 32340
 
 
-Errors   :    55
-Warnings :     0 reported,     0 suppressed
+Errors   :    68
+Warnings :     2 reported,     0 suppressed
 Messages :     0 reported,     0 suppressed
 
 
