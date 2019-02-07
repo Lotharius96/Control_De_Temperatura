@@ -167,25 +167,25 @@ RVIntL:
 ; The high priority interrupt code is placed here to avoid conflicting with
 ; the low priority interrupt vector.
 
-;HighInt:
-High_Interrupt:  ;Interrupcion de prioridad alta
+HighInt:
+;High_Interrupt:  ;Interrupcion de prioridad alta
   ; COmprobar 
-    btfss Intcon3, .0 ; boton de temperatura
+    btfss INTCON3, .0 ; boton de temperatura
     bra $+4
     call Checkboton1; 
-    ;btfss Incon3, 0 
+    ;btfss INTCON3, 0 
     ;bra $+4
     ;call Checkboton2;    
-    bcf Intcon3, .1
-    ;bcf Intcon3, .0
-    bsf Intcon3, .3
+    ;bcf INTCON3, .1
+    ;bcf Intco3, .0
+    bsf INTCON3, .3 ; habilio la interrupcion externa 1
     ;bsf Incon3,  3
-    retfie fast
+    retfie FAST
 
  Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
-  bcf Intcon3, .3
-  DELAY1
-  Btfss portB, .0
+  bcf INTCON3, .3
+  call DELAY1
+  Btfss PORTB, .0
   bra $+4
   incf Boton1
   movlw 0x02
@@ -199,7 +199,7 @@ High_Interrupt:  ;Interrupcion de prioridad alta
 ;	*** high priority interrupt code goes here ***
 
 
-		retfie	FAST
+;  retfie	FAST
 
 
 ;******************************************************************************
@@ -327,7 +327,7 @@ SETUPIO:
     ;movwf INTCON2
     movlw  0xD8      ;0x11011000
     movwf INTCON3
-    BCF ANSELB,.3
+    BCF ANSELB,.4
     
 		
 #endif
