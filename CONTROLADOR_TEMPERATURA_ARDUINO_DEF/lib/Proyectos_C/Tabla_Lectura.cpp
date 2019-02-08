@@ -22,8 +22,8 @@ Tabla_Lectura::Tabla_Lectura(){};
 int * Tabla_Lectura::Tabla_Read(int valor){
   int counter=0;
   int * Salida=(int *)malloc(8*sizeof(int));
-  while(counter<8){
-     Salida[counter]=Tabla[valor][counter];
+  while(counter<0){
+     Salida[counter]=Tabla[valor][7-counter];
      counter++;
   }
  return Salida;

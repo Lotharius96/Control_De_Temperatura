@@ -28,9 +28,9 @@ void  Visualizacion::Visual(float Measure)
   int Decena=0;
   int Centena=0;
   if(Boton_l==0){
-     Unidad=conversionBCD.Lectura_Unidad(Measure);
-     Decena=conversionBCD.Lectura_Decena(Measure);
-     Centena=conversionBCD.Lectura_Centena(Measure);
+     Unidad=(int)(conversionBCD.Lectura_Unidad(Measure)/10);
+     Decena=(int)(conversionBCD.Lectura_Decena(Measure)/10);
+     Centena=(int)(conversionBCD.Lectura_Centena(Measure)/10);
   }else if(Boton_l==1){
      Unidad=conversionBCD.Lectura_Unidad(MAX);
      Decena=conversionBCD.Lectura_Decena(MAX);
@@ -51,22 +51,26 @@ void Visualizacion::Visualizar(int x, int y, int z)
    Matriz=tabla_lecturaT.Tabla_Read(x);
    Matrix_Read(Matriz,false);
   
-   delay(50);
-   digitalWrite(3,LOW);
+   //delay(50);
+   //digitalWrite(3,LOW);
    digitalWrite(4,HIGH);
    Matriz=tabla_lecturaT.Tabla_Read(y);
    Matrix_Read(Matriz,false);
    //digitalWrite(4,HIGH);
-   delay(50);
-   digitalWrite(4,LOW);
+   //delay(50);
+  // digitalWrite(4,LOW);
    digitalWrite(5,HIGH);
    Matriz=tabla_lecturaT.Tabla_Read(z);
    //digitalWrite(5,HIGH);
    Matrix_Read(Matriz,false);
    //digitalWrite(5,HIGH);
-   delay(50);
-   digitalWrite(5,LOW);
+   delay(500);
+   //digitalWrite(5,LOW);
    Matrix_Read(Matriz,true);
+   digitalWrite(5,LOW);
+   digitalWrite(4,LOW);
+   digitalWrite(3,LOW);
+  
  }
 
 void Visualizacion::Matrix_Read(int *Matriz,bool Stble)

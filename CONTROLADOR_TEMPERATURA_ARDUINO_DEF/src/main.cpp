@@ -10,7 +10,7 @@ int Measure = 0; //medida del sensor de temperatura
 float Value= 0;
 int boton=0;
 int analogPin = 2;
-int interruptButton =1; //Boton_interrupcion_1
+int interruptButton =13; //Boton_interrupcion_1
 Boton botonX;
 Visualizacion visualizacion;
 //Tabla_Lectura tabla_lectura;
@@ -19,12 +19,12 @@ void Interrupcion(){
 boton=botonX.Conteo();
 }
 void setup(){
-//configuracion de pines para visualizar
+//co                                                                                               nfiguracion de pines para visualizar
  int i;
  for(i=3;i<14;i++){
    pinMode(i,OUTPUT);
   }
-
+ 
 //
  pinMode(interruptButton,INPUT);
  attachInterrupt(digitalPinToInterrupt(interruptButton),Interrupcion,RISING);
@@ -40,6 +40,7 @@ void loop(){
   Value=((5*Measure)/1024);
   visualizacion.GetBoton(boton);
   visualizacion.Visual(Value);
+  delay(100);
 
 }
 

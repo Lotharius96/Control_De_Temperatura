@@ -26,6 +26,6 @@ int BCD_Conversion::Lectura_Unidad(float Value) {
 //  float Temp=0;
   //Centena=(uint8_t)(Value/100);
   //Decena=(uint8_t)((Value-Centena*100)/10);
-  Unidad=(int)((Value-Centena*100-Decena*10));
+  Unidad=(int)((Value-(Centena*100)-(Decena*10);
   return Unidad;
 }
