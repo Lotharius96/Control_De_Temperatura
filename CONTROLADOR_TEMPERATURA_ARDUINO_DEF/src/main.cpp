@@ -37,7 +37,7 @@ void setup(){
 void loop(){
 
   Measure=analogRead(analogPin);
-  Value=((5*Measure)/1024);
+  Value=((5*Measure*0.1)/1024);
   visualizacion.GetBoton(boton);
   visualizacion.Visual(Value);
   delay(100);

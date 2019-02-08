@@ -28,9 +28,9 @@ void  Visualizacion::Visual(float Measure)
   int Decena=0;
   int Centena=0;
   if(Boton_l==0){
-     Unidad=(int)(conversionBCD.Lectura_Unidad(Measure)/10);
-     Decena=(int)(conversionBCD.Lectura_Decena(Measure)/10);
-     Centena=(int)(conversionBCD.Lectura_Centena(Measure)/10);
+     Unidad=(int)(conversionBCD.Lectura_Unidad(Measure));
+     Decena=(int)(conversionBCD.Lectura_Decena(Measure));
+     Centena=(int)(conversionBCD.Lectura_Centena(Measure));
   }else if(Boton_l==1){
      Unidad=conversionBCD.Lectura_Unidad(MAX);
      Decena=conversionBCD.Lectura_Decena(MAX);
