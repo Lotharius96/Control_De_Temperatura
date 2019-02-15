@@ -59,7 +59,7 @@
 	;processor specific variable definitions
 
 #define nobootloader 1			;nobootloader = 1 =  prog with pickit3 or similar or simulation
-#define version 2
+#define version 1
 #include "25k50config.inc"  ;MCU configuration bits (heredada de bootloader)
 #include "vectors.inc"		;vectors remapping for bootloader
 #include "hwconfig.inc"				
@@ -206,18 +206,20 @@ HighInt:
 ;Start of main program
 ; The main program code is placed here.
 
-;version equ 2		;versión 1 blinker básico o 2 doble led (requiere cablear)
+;version equ 1		;versión 1 blinker básico o 2 doble led (requiere cablear)
 		
 Main:
 ;	*** main code goes here ***
 	call SETUPOSC   ;configura oscilador interno 16MHz ?!
-	call SETUPIO    ;configura LED1,2,3 y botones (pull ups)
-	CALL SETUPADC
+	
+        ;call SETUPIO    ;configura LED1,2,3 y botones (pull ups)
+	;CALL SETUPADC
 LOOP
-	call CONVERSION
-        call CONTROL
-	CALL GENBCD
-	CALL visual
+        BSF LATA,.0;
+	;call CONVERSION
+        ;call CONTROL
+	;CALL GENBCD
+	;CALL visual
 	BRA LOOP
 
 ;*******
@@ -297,7 +299,8 @@ PLL_Redy_loop
 #endif
 		
 		RETURN
-#if 1
+
+#if version==2	
 SETUPIO:
 	;CLRF    LATA
 	;CLRF	LATB
@@ -305,7 +308,9 @@ SETUPIO:
 	;BCF		anLED1		; con ayuda de definiciones hwconfig.inc se definen pines I/O
 	;BCF		tLED1	;out
 
-#if version==2	
+
+
+;#if version==2	
     CLRF PORTA
     CLRF PORTB
     movlw 0xFD ; puerto para la interrupcion boton rb1
@@ -330,11 +335,10 @@ SETUPIO:
     BCF ANSELB,.4
     
 		
-#endif
+
     
 		
 		RETURN
-#endif
 
 CONTROL:
 ;00101000
@@ -467,7 +471,7 @@ visual:
     ;CALL Delay01s
     
     RETURN
-
+#endif
     
 ;******************************************************************************
 ;End of program
