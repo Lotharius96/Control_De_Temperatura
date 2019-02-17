@@ -1,0 +1,859 @@
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  1
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00001 ;******************************************************************************
+                      00002 ;   This file is a basic template for assembly code for a PIC18F25K50. Copy   *
+                      00003 ;   this file into your project directory and modify or add to it as needed.  *
+                      00004 ;                                                                             *
+                      00005 ;   Refer to the MPASM User's Guide for additional information on the         *
+                      00006 ;   features of the assembler.                                                *
+                      00007 ;                                                                             *
+                      00008 ;   Refer to the PIC18Fx5K5X Data Sheet for additional                        *
+                      00009 ;   information on the architecture and instruction set.                      *
+                      00010 ;                                                                             *
+                      00011 ;******************************************************************************
+                      00012 ;                                                                             *
+                      00013 ;    Filename:   EjBlinkerPlantillaHID.asm                                    *
+                      00014 ;    Date:         Febr 13 2018                                               *
+                      00015 ;    File Version:  2.0                                                       *
+                      00016 ;                                                                             *
+                      00017 ;    Author:      FZAMORA                                                     *
+                      00018 ;    Company:     CEX.com.co                                                  *
+                      00019 ;                                                                             *
+                      00020 ;******************************************************************************
+                      00021 ;                                                                             *
+                      00022 ;    Files Required: p18F25K50_fz.INC                                         *
+                      00023 ;                                                                             *
+                      00024 ;******************************************************************************
+                      00025 ;* Notas:  plantilla para trabajar con HID USB bootloader PIC18F25K50 en assembler
+                      00026 ;* con board CEX 1.3 y 1.4. 
+                      00027 ;* -Modo bootloader:  conectar a micro USB mientras se mantiene presionado RESET(RE3/MCLR)
+                      00028 ;*  y RB2 y/o RB4 (botones en la board), luego liberar el RESET y luego RB2/RB4
+                      00029 ;* hasta que el programa HIDBootloader.exe (win) reconozca el hardware.  El bootloader
+                      00030 ;* ocupa memoria flash desde 0x000 hasta 0x7FF (2KB).
+                      00031 ;* -Modo Run: para ejecutar programa de usuario cargado previamente con bootloader,
+                      00032 ;* (desde 0x800 hasta 0x7FFF)...
+                      00033 ;* conectar USB o cualquier otra fuente de alimentación soportada por board CEX
+                      00034 ;* Presionar  RESET si el programa no inicia como se espera.
+                      00035 ;* Demo Programa ejemplo (Versión 1): 
+                      00036 ;* Conexiones CEX 1.3/4 requeridas (definido en hwconfig.inc): 
+                      00037 ;* -Conecte D9 del shield con +5V (ánodo común R, G y B) (DIP SW 5)
+                      00038 ;* - D2 conectado por defecto. (RA4 --> cátodo Green)   
+                      00039 ;*Al energizar board modo run, led GREEN parpadea con frecuencia 
+                      00040 ;* cercana a 1Hz. 
+                      00041 ;* Versión 2:
+                      00042 ;* - Conecte RC1 con D9 en JP2. (RC1 --> cátodo Red)
+                      00043 ;* - Conecte RC2 con D6 en JP3. (RC2 --> cátodo Blue)
+                      00044 ;* Si se presiona SW2, se enciende adicionalmente led BLUE, de fondo.
+                      00045 ;* El parpadeo de BLUE ahora producirá una mezcla entre GREEN (Blue= off) y GREEN+BLUE
+                      00046 ;* (Blue = on)a la frecuencia indiada cercana a 1Hz. Para modificar ejemplo abra proyecto 
+                      00047 ;* o cree uno nuevo con archivo fuente .asm y archivos header (x4) mencionados aquí.
+                      00048 ;* No olvide agregar el linker (script) requerido para bootloader o no bootloader.
+                      00049 ;* Al modificar código ejemplo, ensamble todo (build all), conecte board en modo bootloader,
+                      00050 ;* desde HIDBootloader.exe busque <nombremainASM>.hex, cargue y programe. 
+                      00051 ;* Ruta del .hex en proyecto.X: .dist/default/production/ (*.cof, .hex, .map)   
+                      00052 ;* Haga RESET desde la app windows del bootloader o el botón en la CEX board 
+                      00053 ;* y observe el funcionamiento de modificaciones del programa.
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  2
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00054 ;*****************************************************************************************
+                      00055 
+                      00056         LIST P=18F25K50         ;directive to define processor
+                      00057         
+                      00058 #include "p18f25k50_fz.inc"
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC18F25K50 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      02210         LIST
+                      00059         ;processor specific variable definitions
+                      00060 
+                      00061 #define nobootloader 1                  ;nobootloader = 1 =  prog with pickit3 or similar or simulation
+                      00062 #define version 1
+                      00063 #include "25k50config.inc"  ;MCU configuration bits (heredada de bootloader)
+                      00001 ;******************************************************************************
+                      00002 ;   This file is a basic template for assembly code for a PIC18F25K50. Copy    *
+                      00003 ;   this file into your project directory and modify or add to it as needed.  *
+                      00004 ;                                                                             *
+                      00005 ;   Refer to the MPASM User's Guide for additional information on the         *
+                      00006 ;   features of the assembler.                                                *
+                      00007 ;                                                                             *
+                      00008 ;   Refer to the PIC18Fx5K5X Data Sheet for additional                    *
+                      00009 ;   information on the architecture and instruction set.                      *
+                      00010 ;                                                                             *
+                      00011 ;******************************************************************************
+                      00012 ;                                                                             *
+                      00013 ;    Filename:   25k50config.inc                                                             *
+                      00014 ;    Date:         March 10th 2015                                                           *
+                      00015 ;    File Version:  1.0                                                          *
+                      00016 ;                                                                             *
+                      00017 ;    Author:      FZAMORA                                                            *
+                      00018 ;    Company:     CEX.com.co                                                            *
+                      00019 ;                                                                             *
+                      00020 ;******************************************************************************
+                      00021 ;                                    
+                      00022 ;Configuration bits
+                      00023 ;Microchip has changed the format for defining the configuration bits, please
+                      00024 ;see the .inc file for futher details on notation.  Below are a few examples.
+                      00025 #if 0  ;mplabc18 bootloader k50 original config
+Error[1102]  : Parser error: syntax error
+                      00026         #pragma config PLLSEL   = PLL3X     // 3X PLL multiplier selected
+Error[1102]  : Parser error: syntax error
+                      00027         #pragma config CFGPLLEN = OFF       // PLL turned on during execution
+Error[1102]  : Parser error: syntax error
+                      00028         #pragma config CPUDIV   = NOCLKDIV  // 1:1 mode (for 48MHz CPU)
+Error[1102]  : Parser error: syntax error
+                      00029         #pragma config LS48MHZ  = SYS48X8   // Clock div / 8 in Low Speed USB mode
+Error[1102]  : Parser error: syntax error
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  3
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00030         #pragma config FOSC     = INTOSCIO  // HFINTOSC selected at powerup, no clock out
+Error[1102]  : Parser error: syntax error
+                      00031         #pragma config PCLKEN   = OFF       // Primary oscillator driver
+Error[1102]  : Parser error: syntax error
+                      00032         #pragma config FCMEN    = OFF       // Fail safe clock monitor
+Error[1102]  : Parser error: syntax error
+                      00033         #pragma config IESO     = OFF       // Internal/external switchover (two speed startup)
+Error[1102]  : Parser error: syntax error
+                      00034         #pragma config nPWRTEN  = OFF       // Power up timer
+Error[1102]  : Parser error: syntax error
+                      00035         #pragma config BOREN    = SBORDIS   // BOR enabled
+Error[1102]  : Parser error: syntax error
+                      00036         #pragma config nLPBOR   = ON        // Low Power BOR
+Error[1102]  : Parser error: syntax error
+                      00037         #pragma config WDTEN    = SWON      // Watchdog Timer controlled by SWDTEN
+Error[1102]  : Parser error: syntax error
+                      00038         #pragma config WDTPS    = 32768     // WDT postscalar
+Error[1102]  : Parser error: syntax error
+                      00039         #pragma config PBADEN   = OFF       // Port B Digital/Analog Powerup Behavior
+Error[1102]  : Parser error: syntax error
+                      00040         #pragma config SDOMX    = RB3       // SDO function location
+Error[1102]  : Parser error: syntax error
+                      00041         #pragma config LVP      = OFF       // Low voltage programming
+Error[1102]  : Parser error: syntax error
+                      00042         #pragma config MCLRE    = ON        // MCLR function enabled (RE3 disabled)
+Error[1102]  : Parser error: syntax error
+                      00043         #pragma config STVREN   = ON        // Stack overflow reset
+Error[1102]  : Parser error: syntax error
+                      00044         //#pragma config ICPRT  = OFF       // Dedicated ICPORT program/debug pins enable
+Error[1102]  : Parser error: syntax error
+                      00045         #pragma config XINST    = OFF       // Extended instruction set
+                      00046 #endif
+                      00047 ;   ASSEMBLY Oscillator Selection:
+                      00048  ;   CONFIG     FOSC = XT_XT         ;XT oscillator, XT used by USB
+                      00049 ;******************************************************************************
+                      00050 ;  general purpose bootloader inernal oscilator 16MHz config:
+                      00051 #if 0 
+                      00052          config PLLSEL   = PLL3X     ; 3X PLL multiplier selected
+                      00053           config CFGPLLEN = OFF       ; PLL turned on during execution
+                      00054           config CPUDIV   = NOCLKDIV  ; 1:1 mode (for 48MHz CPU)
+                      00055           config LS48MHZ  = SYS48X8   ; Clock div / 8 in Low Speed USB mode
+                      00056           config FOSC     = INTOSCIO  ; HFINTOSC selected at powerup, no clock out
+                      00057           config PCLKEN   = OFF       ; Primary oscillator driver
+                      00058           config FCMEN    = OFF       ; Fail safe clock monitor
+                      00059           config IESO     = OFF       ; Internal/external switchover (two speed startup)
+                      00060           config nPWRTEN  = OFF       ; Power up timer
+                      00061           config BOREN    = SBORDIS   ; BOR enabled
+                      00062           config BORV     = 190         ;BOR voltage 1.9 V nominal
+                      00063                   config nLPBOR   = ON        ; Low Power BOR
+                      00064           CONFIG WDTEN    = OFF      ; Watchdog Timer controlled by SWDTEN
+                      00065           config WDTPS    = 32768     ; WDT postscalar
+                      00066           config PBADEN   = OFF       ; Port B Digital/Analog Powerup Behavior
+                      00067           config SDOMX    = RC7       ; SDO function location
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  4
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00068           config LVP      = OFF       ; Low voltage programming
+                      00069          ; config MCLRE    = ON        ; MCLR function enabled (RE3 disabled)
+                      00070            config MCLRE    = OFF        ; MCLR function enabled (RE3 disabled) in target fw?
+                      00071           config STVREN   = ON        ; Stack overflow reset
+                      00072         ;  config ICPRT  = OFF       ; Dedicated ICPORT program/debug pins enable
+                      00073           config XINST    = OFF       ; Extended instruction set
+                      00074 #endif
+                      00075 #if 1
+                      00076 ;**** SAKA bootloader config image:
+                      00077   CONFIG  PLLSEL = PLL3X        ; PLL Selection (3x clock multiplier)
+                      00078   CONFIG  CFGPLLEN = ON         ; PLL Enable Configuration bit (PLL Enabled)
+                      00079   CONFIG  CPUDIV = NOCLKDIV     ; CPU System Clock Postscaler (CPU uses system clock (no divide))
+                      00080   CONFIG  LS48MHZ = SYS48X8     ; Low Speed USB mode with 48 MHz system clock (System clock at 48 MHz, U
+                            SB clock divider is set to 8)
+                      00081   CONFIG  FOSC = INTOSCIO       ; Oscillator Selection (Internal oscillator)
+                      00082   CONFIG  PCLKEN = OFF          ; Primary Oscillator Shutdown (Primary oscillator shutdown firmware cont
+                            rolled)
+                      00083   CONFIG  FCMEN = OFF           ; Fail-Safe Clock Monitor (Fail-Safe Clock Monitor disabled)
+                      00084   CONFIG  IESO = OFF            ; Internal/External Oscillator Switchover (Oscillator Switchover mode di
+                            sabled)
+Error[181]  : CONFIG Directive Error: Setting not found for 18f25k50 processor: "nPWRTEN"
+                      00085   CONFIG  nPWRTEN = ON          ; Power-up Timer Enable (Power up timer enabled)
+                      00086   CONFIG  BOREN = SBORDIS       ; Brown-out Reset Enable (BOR enabled in hardware (SBOREN is ignored))
+                      00087   CONFIG  BORV = 285            ; Brown-out Reset Voltage (BOR set to 2.85V nominal)
+Error[181]  : CONFIG Directive Error: Setting not found for 18f25k50 processor: "nLPBOR"
+                      00088   CONFIG  nLPBOR = ON           ; Low-Power Brown-out Reset (Low-Power Brown-out Reset enabled)
+                      00089   CONFIG  WDTEN = SWON          ; Watchdog Timer Enable bits (WDT controlled by firmware (SWDTEN enabled
+                            ))
+                      00090   CONFIG  WDTPS = 32768         ; Watchdog Timer Postscaler (1:32768)
+                      00091   CONFIG  CCP2MX = RC1          ; CCP2 MUX bit (CCP2 input/output is multiplexed with RC1)
+                      00092   CONFIG  PBADEN = OFF          ; PORTB A/D Enable bit (PORTB<5:0> pins are configured as digital I/O on
+                             Reset)
+                      00093   CONFIG  T3CMX = RB5           ; Timer3 Clock Input MUX bit (T3CKI function is on RB5)
+                      00094   CONFIG  SDOMX = RC7           ; SDO Output MUX bit (SDO function is on RC7)
+                      00095   CONFIG  MCLRE = ON           ; Master Clear Reset Pin Enable (RE3 input pin enabled; external MCLR dis
+                            abled)
+                      00096   CONFIG  STVREN = ON           ; Stack Full/Underflow Reset (Stack full/underflow will cause Reset)
+                      00097   CONFIG  LVP = OFF             ; Single-Supply ICSP Enable bit (Single-Supply ICSP disabled)
+                      00098   CONFIG  XINST = OFF           ; Extended Instruction Set Enable bit (Instruction set extension and Ind
+                            exed Addressing mode disabled)
+                      00099   CONFIG  CP0 = OFF             ; Block 0 Code Protect (Block 0 is not code-protected)
+                      00100   CONFIG  CP1 = OFF             ; Block 1 Code Protect (Block 1 is not code-protected)
+                      00101   CONFIG  CP2 = OFF             ; Block 2 Code Protect (Block 2 is not code-protected)
+                      00102   CONFIG  CP3 = OFF             ; Block 3 Code Protect (Block 3 is not code-protected)
+                      00103   CONFIG  CPB = OFF             ; Boot Block Code Protect (Boot block is not code-protected)
+                      00104   CONFIG  CPD = OFF             ; Data EEPROM Code Protect (Data EEPROM is not code-protected)
+                      00105   CONFIG  WRT0 = OFF            ; Block 0 Write Protect (Block 0 (0800-1FFFh) is not write-protected)
+                      00106   CONFIG  WRT1 = OFF            ; Block 1 Write Protect (Block 1 (2000-3FFFh) is not write-protected)
+                      00107   CONFIG  WRT2 = OFF            ; Block 2 Write Protect (Block 2 (04000-5FFFh) is not write-protected)
+                      00108   CONFIG  WRT3 = OFF            ; Block 3 Write Protect (Block 3 (06000-7FFFh) is not write-protected)
+                      00109   CONFIG  WRTC = OFF            ; Configuration Registers Write Protect (Configuration registers (300000
+                            -3000FFh) are not write-protected)
+                      00110   CONFIG  WRTB = OFF            ; Boot Block Write Protect (Boot block (0000-7FFh) is not write-protecte
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  5
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                            d)
+                      00111   CONFIG  WRTD = OFF            ; Data EEPROM Write Protect (Data EEPROM is not write-protected)
+                      00112   CONFIG  EBTR0 = OFF           ; Block 0 Table Read Protect (Block 0 is not protected from table reads 
+                            executed in other blocks)
+                      00113   CONFIG  EBTR1 = OFF           ; Block 1 Table Read Protect (Block 1 is not protected from table reads 
+                            executed in other blocks)
+                      00114   CONFIG  EBTR2 = OFF           ; Block 2 Table Read Protect (Block 2 is not protected from table reads 
+                            executed in other blocks)
+                      00115   CONFIG  EBTR3 = OFF           ; Block 3 Table Read Protect (Block 3 is not protected from table reads 
+                            executed in other blocks)
+                      00116   CONFIG  EBTRB = OFF           ; Boot Block Table Read Protect (Boot block is not protected from table 
+                            reads executed in other blocks)
+                      00117 #endif
+                      00064 #include "vectors.inc"          ;vectors remapping for bootloader
+                      00001 ;******************************************************************************
+                      00002 ;   This file is a basic template for assembly code for a PIC18F25K50. Copy    *
+                      00003 ;   this file into your project directory and modify or add to it as needed.  *
+                      00004 ;                                                                             *
+                      00005 ;   Refer to the MPASM User's Guide for additional information on the         *
+                      00006 ;   features of the assembler.                                                *
+                      00007 ;                                                                             *
+                      00008 ;   Refer to the PIC18Fx5K5X Data Sheet for additional                    *
+                      00009 ;   information on the architecture and instruction set.                      *
+                      00010 ;                                                                             *
+                      00011 ;******************************************************************************
+                      00012 ;                                                                             *
+                      00013 ;    Filename:   vectors.inc                                                             *
+                      00014 ;    Date:         March 10th 2015                                                           *
+                      00015 ;    File Version:  1.0                                                          *
+                      00016 ;                                                                             *
+                      00017 ;    Author:      FZAMORA                                                            *
+                      00018 ;    Company:     CEX.com.co                                                            *
+                      00019 ;                                                                             *
+                      00020 ;******************************************************************************
+                      00021 ;                                         
+                      00022 
+                      00023 
+                      00024 
+                      00025 ;FOR C18 HID BOOTLOADER (ref: Raul bootloader
+                      00026 ;#define REMAPPED_APPLICATION_RESET_VECTOR       0x121E
+                      00027 ;#define REMAPPED_APPLICATION_HIGH_ISR_VECTOR    0x1208
+                      00028 ;#define REMAPPED_APPLICATION_LOW_ISR_VECTOR     0x1218
+                      00029 ;#define BOOTLOADER_ABSOLUTE_ENTRY_ADDRESS       0x001C  ;//Execute a
+                      00030 ;"_asm goto 0x001C _endasm" instruction, if you want to enter the bootloader
+                      00031 ; mode from the application via software
+                      00032 
+                      00033 
+                      00034 
+                      00035 
+                      00036 ;FOR ASM HID BOOTLOADER (adaptado a SAKA bootloader
+                      00037 #if nobootloader
+                      00038         #define REMAPPED_APP_RESET_VECTOR               0x0
+                      00039         #define REMAPPED_APP_HIGH_ISR_VECTOR    0x8
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  6
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00040         #define REMAPPED_APP_LOW_ISR_VECTOR             0x18    
+                      00041 #else   
+                      00042         #define REMAPPED_APP_RESET_VECTOR               0x800
+                      00043         #define REMAPPED_APP_HIGH_ISR_VECTOR    0x808
+                      00044         #define REMAPPED_APP_LOW_ISR_VECTOR             0x818
+                      00045         #define BOOTLOADER_ABSOLUTE_ENTRY_ADD   0x2A  ;//Execute a
+                      00046 ;"_asm goto 0x2A _endasm" instruction, if you want to enter the bootloader
+                      00047 ; mode from the application via software
+                      00048 
+                      00049 
+                      00050 ;       #define REMAPPED_APP_RESET_VECTOR               0xA00
+                      00051 ;       #define REMAPPED_APP_HIGH_ISR_VECTOR    0xA08
+                      00052 ;       #define REMAPPED_APP_LOW_ISR_VECTOR             0xA18
+                      00053 ;       #define BOOTLOADER_ABSOLUTE_ENTRY_ADD   0x2A  ;//Execute a
+                      00054 ;"_asm goto 0x2A _endasm" instruction, if you want to enter the bootloader
+                      00055 ; mode from the application via software
+                      00056 
+                      00057 ;       #define REMAPPED_APP_RESET_VECTOR               0x1000
+                      00058 ;       #define REMAPPED_APP_HIGH_ISR_VECTOR    0x1008
+                      00059 ;       #define REMAPPED_APP_LOW_ISR_VECTOR             0x1018
+                      00060 ;       #define BOOTLOADER_ABSOLUTE_ENTRY_ADD   0x1C  ;//Execute a
+                      00061 ;"_asm goto 0x2A _endasm" instruction, if you want to enter the bootloader
+                      00062 ; mode from the application via software
+                      00063 #endif
+                      00064 
+                      00065 #include "hwconfig.inc"                         
+                      00001 ;******************************************************************************
+                      00002 ;   This file is a basic template for assembly code for a PIC18F25K50. Copy    *
+                      00003 ;   this file into your project directory and modify or add to it as needed.  *
+                      00004 ;                                                                             *
+                      00005 ;   Refer to the MPASM User's Guide for additional information on the         *
+                      00006 ;   features of the assembler.                                                *
+                      00007 ;                                                                             *
+                      00008 ;   Refer to the PIC18Fx5K5X Data Sheet for additional                    *
+                      00009 ;   information on the architecture and instruction set.                      *
+                      00010 ;                                                                             *
+                      00011 ;******************************************************************************
+                      00012 ;                                                                             *
+                      00013 ;    Filename:   hwconfig.inc                                                             *
+                      00014 ;    Date:         March 10th 2015                                                           *
+                      00015 ;    File Version:  1.0                                                          *
+                      00016 ;                                                                             *
+                      00017 ;    Author:      FZAMORA                                                            *
+                      00018 ;    Company:     CEX.com.co                                                            *
+                      00019 ;                                                                             *
+                      00020 ;******************************************************************************
+                      00021 ; definición de botones en la app:
+                      00022 
+                      00023 #define     pSW0    PORTA, RA5                  ; Boot Switch used by bootloader SAKA
+                      00024 #define     anSW0   ANSELA,.5     ;by FZamora for CEX 1.0 CS-RA5
+                      00025 #define     tSW0    TRISA,.5       ;by FZamora
+                      00026 
+                      00027 #define     pSW1    PORTB, RB2                  ; Boot Switch used by bootloader SAKA
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  7
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00028 #define     anSW1   ANSELB,.2      ;by FZamora for CEX 1.0 CS-RA5
+                      00029 #define     tSW1    TRISB,.2        ;by FZamora
+                      00030 #define     wpSW1   WPUB,.2                     ;weak pull up 
+                      00031 
+                      00032 #define     pSW2    PORTB, RB4                  ; Boot Switch used by bootloader SAKA
+                      00033 #define     anSW2   ANSELB,.4      ;by FZamora for CEX 1.0 CS-RA5
+                      00034 #define     tSW2    TRISB,.4        ;by FZamora
+                      00035 #define     wpSW2   WPUB,.4             ;weak pull up 
+                      00036 
+                      00037 
+                      00038 ; definición de LED´s en la APP
+                      00039 
+                      00040 #define         pLED1   LATA, LATA4                     ; Green LED
+                      00041 #define         pLED2   LATA, LATA2                     ; blue LED
+                      00042 #define         tLED1   TRISA, TRISA4           ; Green LED
+                      00043 #define         tLED2   TRISA, TRISA2           ; blue LED
+                      00044 #define         pLED3   LATA, LATA1                     ; red LED
+                      00045 #define         tLED3   TRISA, TRISA1           ; red LED    
+                      00046 
+                      00047 #define         anLED1  ANSELA,.4               ;by FZamora
+                      00048 #define         anLED2  ANSELA,.2               ;by FZamora
+                      00049 #define         anLED3  ANSELA,.1               ;by FZamora    
+                      00050 
+                      00051 
+                      00052 ;== end of file ====================================================;
+                      00053                                  
+                      00066         ;nobootloader = 0 =  prog. with USB HID bootloader 2.91 microchip
+                      00067 ;******************************************************************************
+                      00068 ;//incluir OBLIGATORIAMENTE los siguientes archivos en Header Files del proyecto:
+                      00069         ;I/O definitions for user app
+                      00070 ;//el archivo 18F25k50_zhidbldr.lkr debe estar presente en el directorio y agregarse
+                      00071 ;//a carpeta linker script o linker en mplabIDE o MPLABx respectivamente si nobootloader=0.
+                      00072 ;//si nobootloader = 1, cambie linker file a 18f25k50_znobldr.lkr
+                      00073 ;******************************************************************************
+                      00074 ;Variable definitions
+                      00075 ; These variables are only needed if low priority interrupts are used.
+                      00076 ; More variables may be needed to store other special function registers used
+                      00077 ; in the interrupt routines.
+                      00078 
+                      00079                 CBLOCK  0x050   ;0x00 t0 0x5F --> gpr access ram (.96 positions)
+  00000050            00080                 WREG_TEMP       ;variable used for context saving
+  00000051            00081                 STATUS_TEMP     ;variable used for context saving
+  00000052            00082                 BSR_TEMP        ;variable used for context saving
+                      00083                 ENDC
+                      00084 
+                      00085                 CBLOCK  0x000
+  00000052            00086                 
+  00000000            00087         d1                      ;d1,d2,d3 usadas por delay05s
+  00000001            00088         d2
+  00000002            00089         d3
+  00000003            00090         lect
+  00000004            00091         dato
+  00000005            00092         dato2
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  8
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+  00000006            00093         Unidades
+  00000007            00094         Centenas
+  00000008            00095         Decenas
+  00000009            00096         UNIDADES1
+  0000000A            00097         Centenas2
+  0000000B            00098         Decenas2
+  0000000C            00099         UNIDADES2
+  0000000D            00100         puer
+  0000000E            00101         rnu
+  0000000F            00102         nu
+  00000010            00103         val
+  00000011            00104         nd
+  00000012            00105         unidad
+  00000013            00106         Boton1
+  00000014            00107         EXAMPLE         ;example of a variable in access RAM
+                      00108                 ENDC
+                      00109 ;******************************************************************************
+                      00110 ;Constant  definitions
+                      00111 ;
+                      00112                 
+                      00113                 
+                      00114                 
+                      00115 ;******************************************************************************
+                      00116 ;EEPROM data
+                      00117 ; Data to be programmed into the Data EEPROM is defined here
+                      00118 
+F00000                00119                 ORG     0xf00000
+                      00120 
+F00000 54 65 73 74 20 00121                 DE      "Test Data",0,1,2,3,4,5
+       44 61 74 61 00 
+       01 02 03 04 05 
+                      00122 
+                      00123 ;******************************************************************************
+                      00124 
+                      00125 
+                      00126 ;Reset vector
+                      00127 ; This code will start executing when a reset occurs.
+F0000F                00128 Vectors:
+Error[149]  : Directive only allowed when generating an object file: "code"
+                      00129 R_vectors      code     REMAPPED_APP_RESET_VECTOR
+000000                00130 RVReset:
+000000 EF1E F000      00131                 goto    Main            ;go to start of main code
+                      00132 
+                      00133 ;******************************************************************************
+                      00134 ;High priority interrupt vector
+                      00135 ; This code will start executing when a high priority interrupt occurs or
+                      00136 ; when any interrupt occurs if interrupt priorities are not enabled.
+                      00137 
+Error[149]  : Directive only allowed when generating an object file: "code"
+                      00138 R_IntH        code    REMAPPED_APP_HIGH_ISR_VECTOR
+000000                00139 RVIntH:
+000000 D00C           00140                 bra     HighInt         ;go to high priority interrupt routine
+                      00141 
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE  9
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00142 ;******************************************************************************
+                      00143 ;Low priority interrupt vector and routine
+                      00144 ; This code will start executing when a low priority interrupt occurs.
+                      00145 ; This code can be removed if low priority interrupts are not used.
+                      00146 
+Error[149]  : Directive only allowed when generating an object file: "code"
+                      00147 R_IntL        code     REMAPPED_APP_LOW_ISR_VECTOR
+000000                00148 RVIntL:
+000000 CFD8 F051      00149                 movff   STATUS,STATUS_TEMP      ;save STATUS register
+000004 CFE8 F050      00150                 movff   WREG,WREG_TEMP          ;save working register
+000008 CFE0 F052      00151                 movff   BSR,BSR_TEMP            ;save BSR register
+                      00152 
+                      00153 ;       *** low priority interrupt code goes here ***
+                      00154 
+                      00155 
+00000C C052 FFE0      00156                 movff   BSR_TEMP,BSR            ;restore BSR register
+000010 C050 FFE8      00157                 movff   WREG_TEMP,WREG          ;restore working register
+000014 C051 FFD8      00158                 movff   STATUS_TEMP,STATUS      ;restore STATUS register
+000018 0010           00159                 retfie
+                      00160 
+                      00161 ;******************************************************************************
+                      00162 ;High memory PCL tables 
+                      00163                 
+                      00164                 
+                      00165 ;******************************************************************************         
+                      00166 ;High priority interrupt routine
+                      00167 ; The high priority interrupt code is placed here to avoid conflicting with
+                      00168 ; the low priority interrupt vector.
+                      00169 
+00001A                00170 HighInt:
+                      00171 ;High_Interrupt:  ;Interrupcion de prioridad alta
+                      00172   ; COmprobar 
+00001A A0F0           00173     btfss INTCON3, .0 ; boton de temperatura
+00001C D001           00174     bra $+4
+Error[113]  : Symbol not previously defined: "Checkboton1"
+Error[113]  : Symbol not previously defined: "Checkboton1"
+00001E EC00 F000      00175     call Checkboton1; 
+                      00176     ;btfss INTCON3, 0 
+                      00177     ;bra $+4
+                      00178     ;call Checkboton2;    
+                      00179     ;bcf INTCON3, .1
+                      00180     ;bcf Intco3, .0
+000022 86F0           00181     bsf INTCON3, .3 ; habilio la interrupcion externa 1
+                      00182     ;bsf Incon3,  3
+000024 0011           00183     retfie FAST
+                      00184 
+Error[1102]  : Parser error: syntax error
+                      00185  Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
+000026 96F0           00186   bcf INTCON3, .3
+000028 EC3D F000      00187   call DELAY1
+00002C A081           00188   Btfss PORTB, .0
+00002E D001           00189   bra $+4
+000030 2A13           00190   incf Boton1
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE 10
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+000032 0E02           00191   movlw 0x02
+000034 6413           00192   cpfsgt Boton1
+000036 D001           00193   bra $+4
+000038 6A13           00194   clrf Boton1
+00003A 0012           00195   return
+                      00196 
+                      00197 
+                      00198 
+                      00199 ;       *** high priority interrupt code goes here ***
+                      00200 
+                      00201 
+                      00202 ;  retfie       FAST
+                      00203 
+                      00204 
+                      00205 ;******************************************************************************
+                      00206 ;Start of main program
+                      00207 ; The main program code is placed here.
+                      00208 
+                      00209 ;version equ 1          ;versión 1 blinker básico o 2 doble led (requiere cablear)
+                      00210                 
+00003C                00211 Main:
+                      00212 ;       *** main code goes here ***
+00003C EC43 F000      00213         call SETUPOSC   ;configura oscilador interno 16MHz ?!
+                      00214         
+                      00215         ;call SETUPIO    ;configura LED1,2,3 y botones (pull ups)
+                      00216         ;CALL SETUPADC
+000040                00217 LOOP
+000040 8089           00218         BSF LATA,.0;
+                      00219         ;call CONVERSION
+                      00220         ;call CONTROL
+                      00221         ;CALL GENBCD
+                      00222         ;CALL visual
+000042 D7FE           00223         BRA LOOP
+                      00224 
+                      00225 ;*******
+                      00226 
+                      00227    ; BSF                pLED1                   ; apaga cátodo LED (Green)
+                      00228                         ; repite indefinidamente
+                      00229 
+                      00230 ;******************************************************************************
+                      00231 ;subroutines:
+                      00232 ; Delay = 0.5 seconds
+                      00233 ; Clock frequency = 16 MHz ??
+                      00234 
+                      00235 ; Actual delay = 0.5 seconds = 2000000 cycles
+                      00236 ; Error = 0 %
+                      00237 
+                      00238         
+                      00239 
+000044                00240 Delay05s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
+                      00241                                 ;  ajustando código a PIC18F - PC alineado)
+                      00242                         ;1999996 cycles
+000044 0E11           00243         movlw   0x11
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE 11
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+000046 6E00           00244         movwf   d1
+000048 0E5D           00245         movlw   0x5D
+00004A 6E01           00246         movwf   d2
+00004C 0E05           00247         movlw   0x05
+00004E 6E02           00248         movwf   d3
+000050                00249 Delay05s_0
+000050 2E00           00250         decfsz  d1, f
+000052 EF2C F000      00251         goto    $+6
+000056 2E01           00252         decfsz  d2, f
+000058 EF2F F000      00253         goto    $+6
+00005C 2E02           00254         decfsz  d3, f
+00005E EF28 F000      00255         goto    Delay05s_0
+                      00256 
+                      00257                         ;4 cycles (including call)
+000062 0012           00258         return
+                      00259 
+                      00260         
+000064                00261 Delay01s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
+                      00262                                 ;  ajustando código a PIC18F - PC alineado)
+                      00263                         ;1999996 cycles
+000064 0EFF           00264         movlw   0xFF
+000066 6E00           00265         movwf   d1
+000068 0E19           00266         movlw   0x19
+00006A 6E01           00267         movwf   d2
+00006C                00268 Delay01s_0
+00006C 2E00           00269         decfsz  d1, f
+00006E EF3A F000      00270         goto    $+6
+000072 2E01           00271         decfsz  d2, f
+000074 EF36 F000      00272         goto    Delay01s_0
+                      00273 
+                      00274                         ;4 cycles (including call)
+000078 0012           00275         return
+                      00276         
+                      00277 
+00007A                00278 DELAY1
+00007A 0E30           00279     movlw 0x30
+00007C 6E00           00280     movwf d1
+00007E 2E00           00281 DELAY1_0 decfsz d1,f
+000080 EF3F F000      00282     goto DELAY1_0
+000084 0012           00283     return
+                      00284 
+                      00285 ;*************SUBROUTINES******************************************************
+000086                00286 SETUPOSC:
+000086 0E80           00287                 movlw   0x80
+Message[305]: Using default destination of 1 (file).
+000088 529B           00288                 movf    OSCTUNE                                 ; 3X PLL ratio mode selected
+00008A 0E72           00289                 movlw   0x72
+00008C 6ED3           00290                 movwf   OSCCON                                  ; Switch to 16MHz HFINTOSC
+00008E 0E10           00291                 movlw   0x10
+000090 6ED2           00292                 movwf   OSCCON2                                 ; Enable PLL, SOSC, PRI OSC drivers turn
+                            ed off
+                      00293 #if 0       ; habilitar solo si se usa PLL para oscildor interno
+                      00294 PLL_Redy_loop
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE 12
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00295                 btfss   OSCCON2, PLLRDY
+                      00296                 bra             PLL_Redy_loop                   ; Wait for PLL lock
+                      00297                 movlw   0x90
+                      00298                 movwf   ACTCON
+                      00299 #endif
+                      00300                 
+000092 0012           00301                 RETURN
+                      00302 
+                      00303 #if version==2  
+                      00304 SETUPIO:
+                      00305         ;CLRF    LATA
+                      00306         ;CLRF   LATB
+                      00307         
+                      00308         ;BCF            anLED1          ; con ayuda de definiciones hwconfig.inc se definen pines I/O
+                      00309         ;BCF            tLED1   ;out
+                      00310 
+                      00311 
+                      00312 
+                      00313 ;#if version==2 
+                      00314     CLRF PORTA
+                      00315     CLRF PORTB
+                      00316     movlw 0xFD ; puerto para la interrupcion boton rb1
+                      00317     movwf ANSELB
+                      00318     movlw 0xFF
+                      00319     movwf ADCON1
+                      00320     movlw 0xFF
+                      00321     movwf TRISB
+                      00322     movlw 0x00
+                      00323     movwf TRISA
+                      00324     movlw 0x00
+                      00325     movwf TRISC
+                      00326     ;configura interrupcion
+                      00327     movlw 0xF0
+                      00328     movwf INTCON
+                      00329     movlw 0xF0
+                      00330     movwf INTCON2
+                      00331  ;   bcf INTXON2, INTEDG0
+                      00332     ;movwf INTCON2
+                      00333     movlw  0xD8      ;0x11011000
+                      00334     movwf INTCON3
+                      00335     BCF ANSELB,.4
+                      00336     
+                      00337                 
+                      00338 
+                      00339     
+                      00340                 
+                      00341                 RETURN
+                      00342 
+                      00343 CONTROL:
+                      00344 ;00101000
+                      00345 ;00001111
+                      00346         movlw 0x02
+                      00347         cpfseq Boton1
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE 13
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00348         bra $+4
+                      00349         call Maximo 
+                      00350         movlw 0x01
+                      00351         cpfseq Boton1
+                      00352         bra $+4
+                      00353         call Minimo
+                      00354                 RETURN 
+                      00355 Maximo:
+                      00356         movlw 0x28
+                      00357         movwf lect
+                      00358                 RETURN
+                      00359 Minimo:      
+                      00360         movlw 0x0F
+                      00361         movwf lect
+                      00362                 RETURN
+                      00363                 
+                      00364 SETUPADC:
+                      00365         MOVLW b'00000101'
+                      00366         MOVWF ADCON2
+                      00367         MOVLW b'00000000'
+                      00368         MOVWF ADCON1
+                      00369         MOVLW b'00100101'
+                      00370         MOVWF ADCON0
+                      00371     
+                      00372                 RETURN
+                      00373     
+                      00374 CONVERSION:
+                      00375         BSF ADCON0,GO
+                      00376 espera 
+                      00377         BTFSC ADCON0,GO
+                      00378         BRA espera
+                      00379         MOVF ADRESH,W
+                      00380         MOVWF lect
+                      00381         movlw d'50'
+                      00382         movwf dato
+                      00383         movlw d'5'
+                      00384         movwf dato2
+                      00385 ;       
+                      00386                 RETURN
+                      00387                 
+                      00388 GENBCD:
+                      00389        CLRF Unidades
+                      00390        clrf Decenas
+                      00391        clrf Centenas
+                      00392             
+                      00393        ;Comienza el proceso de otención de valores BCD 
+                      00394        ;para Centenas, Decenas y unidades atraves de restas
+                      00395        ;sucesivas.
+                      00396 CENTENAS1
+                      00397        movf dato,W      ;W=d'100'
+                      00398        subwf lect,W     ;Resto - d'100' (W)
+                      00399        btfss STATUS,C    ;Resto menor que d'100'?
+                      00400        goto DECENAS1     ;SI
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE 14
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00401        movwf lect       ;NO, Salva el resto
+                      00402        movlw d'1'
+                      00403        ADDWF Centenas,W
+                      00404        movwf Centenas
+                      00405        goto CENTENAS1    ;Realiza otra resta
+                      00406        
+                      00407 DECENAS1
+                      00408        movf dato2,W      ;W=d'10'
+                      00409        subwf lect,W     ;Resto - d'10' (W)
+                      00410        btfss STATUS,C    ;Resto menor que d'10'?
+                      00411        goto UNIDADES10    ;Si
+                      00412        movwf lect       ;No, Salva el resto
+                      00413        movlw d'1'
+                      00414        ADDWF Decenas,W
+                      00415        movwf Decenas
+                      00416        goto DECENAS1     ;Realiza otra resta
+                      00417            
+                      00418 UNIDADES10
+                      00419        MOVF lect,W
+                      00420        movwf Unidades
+                      00421        clrf lect
+                      00422 f       movf Decenas,W
+                      00423        ;movwf PORTA
+                      00424 
+                      00425        
+                      00426     RETURN
+                      00427     
+                      00428 
+                      00429 TABLA: 
+                      00430 
+                      00431      ADDWF      PCL,F
+                      00432     RETLW       b'0111111'
+                      00433     RETLW       b'0000110'
+                      00434     RETLW       b'1011011'
+                      00435     RETLW       b'1001111'
+                      00436     RETLW       b'1100110'
+                      00437     RETLW       b'1101101'
+                      00438     RETLW       b'1111101'
+                      00439     RETLW       b'1000111'
+                      00440     RETLW       b'1111111'  
+                      00441     RETLW       b'1100111'  
+                      00442     
+                      00443     RETURN
+                      00444  
+                      00445     
+                      00446     
+                      00447 visual:  
+                      00448     
+                      00449     RLNCF Decenas,W   ;Imprime el dígito de las centenas
+                      00450     call TABLA
+                      00451     movwf LATA
+                      00452     BSF LATC,.1
+                      00453     CALL Delay01s
+gpasm-1.5.0 #1285 (Aug 10 2018)  TEMPMAIN.asm   17/02/19  11:06:10          PAGE 15
+
+
+LOC    OBJECT CODE    LINE  SOURCE TEXT
+  VALUE
+
+                      00454     BCF LATC,.1
+                      00455     ;CALL Delay01s
+                      00456 
+                      00457     RLNCF Centenas,W   ;Imprime el dígito de las centenas
+                      00458     call TABLA
+                      00459     movwf LATA
+                      00460     BSF LATC,.0
+                      00461     CALL Delay01s
+                      00462     BCF LATC,.0
+                      00463     ;CALL Delay01s
+                      00464     
+                      00465     RLNCF Unidades,W   ;Imprime el dígito de las centenas
+                      00466     call TABLA
+                      00467     movwf LATA
+                      00468     BSF LATC,.2
+                      00469     CALL Delay01s
+                      00470     BCF LATC,.2
+                      00471     ;CALL Delay01s
+                      00472     
+                      00473     RETURN
+                      00474 #endif
+                      00475     
+                      00476 ;******************************************************************************
+                      00477 ;End of program
+                      00478 
+                      00479                 END
+Error[181]  : Error generating hex file.

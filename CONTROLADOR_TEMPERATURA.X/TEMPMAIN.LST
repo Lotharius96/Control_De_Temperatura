@@ -1,0 +1,644 @@
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;******************************************************************************
+                      00002 ;   This file is a basic template for assembly code for a PIC18F25K50. Copy   *
+                      00003 ;   this file into your project directory and modify or add to it as needed.  *
+                      00004 ;                                                                             *
+                      00005 ;   Refer to the MPASM User's Guide for additional information on the         *
+                      00006 ;   features of the assembler.                                                *
+                      00007 ;                                                                             *
+                      00008 ;   Refer to the PIC18Fx5K5X Data Sheet for additional                        *
+                      00009 ;   information on the architecture and instruction set.                      *
+                      00010 ;                                                                             *
+                      00011 ;******************************************************************************
+                      00012 ;                                                                             *
+                      00013 ;    Filename:   EjBlinkerPlantillaHID.asm                                    *
+                      00014 ;    Date:         Febr 13 2018                                               *
+                      00015 ;    File Version:  2.0                                                       *
+                      00016 ;                                                                             *
+                      00017 ;    Author:      FZAMORA                                                     *
+                      00018 ;    Company:     CEX.com.co                                                  *
+                      00019 ;                                                                             *
+                      00020 ;******************************************************************************
+                      00021 ;                                                                             *
+                      00022 ;    Files Required: p18F25K50_fz.INC                                         *
+                      00023 ;                                                                             *
+                      00024 ;******************************************************************************
+                      00025 ;* Notas:  plantilla para trabajar con HID USB bootloader PIC18F25K50 en assembler
+                      00026 ;* con board CEX 1.3 y 1.4. 
+                      00027 ;* -Modo bootloader:  conectar a micro USB mientras se mantiene presionado RESET(RE3/MCLR)
+                      00028 ;*  y RB2 y/o RB4 (botones en la board), luego liberar el RESET y luego RB2/RB4
+                      00029 ;* hasta que el programa HIDBootloader.exe (win) reconozca el hardware.  El bootloader
+                      00030 ;* ocupa memoria flash desde 0x000 hasta 0x7FF (2KB).
+                      00031 ;* -Modo Run: para ejecutar programa de usuario cargado previamente con bootloader,
+                      00032 ;* (desde 0x800 hasta 0x7FFF)...
+                      00033 ;* conectar USB o cualquier otra fuente de alimentación soportada por board CEX
+                      00034 ;* Presionar  RESET si el programa no inicia como se espera.
+                      00035 ;* Demo Programa ejemplo (Versión 1): 
+                      00036 ;* Conexiones CEX 1.3/4 requeridas (definido en hwconfig.inc): 
+                      00037 ;* -Conecte D9 del shield con +5V (ánodo común R, G y B) (DIP SW 5)
+                      00038 ;* - D2 conectado por defecto. (RA4 --> cátodo Green)   
+                      00039 ;*Al energizar board modo run, led GREEN parpadea con frecuencia 
+                      00040 ;* cercana a 1Hz. 
+                      00041 ;* Versión 2:
+                      00042 ;* - Conecte RC1 con D9 en JP2. (RC1 --> cátodo Red)
+                      00043 ;* - Conecte RC2 con D6 en JP3. (RC2 --> cátodo Blue)
+                      00044 ;* Si se presiona SW2, se enciende adicionalmente led BLUE, de fondo.
+                      00045 ;* El parpadeo de BLUE ahora producirá una mezcla entre GREEN (Blue= off) y GREEN+BLUE
+                      00046 ;* (Blue = on)a la frecuencia indiada cercana a 1Hz. Para modificar ejemplo abra proyecto 
+                      00047 ;* o cree uno nuevo con archivo fuente .asm y archivos header (x4) mencionados aquí.
+                      00048 ;* No olvide agregar el linker (script) requerido para bootloader o no bootloader.
+                      00049 ;* Al modificar código ejemplo, ensamble todo (build all), conecte board en modo bootloader,
+                      00050 ;* desde HIDBootloader.exe busque <nombremainASM>.hex, cargue y programe. 
+                      00051 ;* Ruta del .hex en proyecto.X: .dist/default/production/ (*.cof, .hex, .map)   
+                      00052 ;* Haga RESET desde la app windows del bootloader o el botón en la CEX board 
+                      00053 ;* y observe el funcionamiento de modificaciones del programa.
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00054 ;*****************************************************************************************
+                      00055 
+                      00056         LIST P=18F25K50         ;directive to define processor
+                      00057         
+Error[105]  : Cannot open file (Include File "p18f25k50_fz.inc" not found)
+                      00058 #include "p18f25k50_fz.inc"
+                      00059         ;processor specific variable definitions
+                      00060 
+                      00061 #define nobootloader 1                  ;nobootloader = 1 =  prog with pickit3 or similar or simulation
+                      00062 #define version 1
+Error[105]  : Cannot open file (Include File "25k50config.inc" not found)
+                      00063 #include "25k50config.inc"  ;MCU configuration bits (heredada de bootloader)
+Error[105]  : Cannot open file (Include File "vectors.inc" not found)
+                      00064 #include "vectors.inc"          ;vectors remapping for bootloader
+Error[105]  : Cannot open file (Include File "hwconfig.inc" not found)
+                      00065 #include "hwconfig.inc"                         
+                      00066         ;nobootloader = 0 =  prog. with USB HID bootloader 2.91 microchip
+                      00067 ;******************************************************************************
+                      00068 ;//incluir OBLIGATORIAMENTE los siguientes archivos en Header Files del proyecto:
+                      00069         ;I/O definitions for user app
+                      00070 ;//el archivo 18F25k50_zhidbldr.lkr debe estar presente en el directorio y agregarse
+                      00071 ;//a carpeta linker script o linker en mplabIDE o MPLABx respectivamente si nobootloader=0.
+                      00072 ;//si nobootloader = 1, cambie linker file a 18f25k50_znobldr.lkr
+                      00073 ;******************************************************************************
+                      00074 ;Variable definitions
+                      00075 ; These variables are only needed if low priority interrupts are used.
+                      00076 ; More variables may be needed to store other special function registers used
+                      00077 ; in the interrupt routines.
+                      00078 
+                      00079                 CBLOCK  0x050   ;0x00 t0 0x5F --> gpr access ram (.96 positions)
+  00000050            00080                 WREG_TEMP       ;variable used for context saving
+  00000051            00081                 STATUS_TEMP     ;variable used for context saving
+  00000052            00082                 BSR_TEMP        ;variable used for context saving
+                      00083                 ENDC
+                      00084 
+                      00085                 CBLOCK  0x000
+                      00086                 
+  00000000            00087         d1                      ;d1,d2,d3 usadas por delay05s
+  00000001            00088         d2
+  00000002            00089         d3
+  00000003            00090         lect
+  00000004            00091         dato
+  00000005            00092         dato2
+  00000006            00093         Unidades
+  00000007            00094         Centenas
+  00000008            00095         Decenas
+  00000009            00096         UNIDADES1
+  0000000A            00097         Centenas2
+  0000000B            00098         Decenas2
+  0000000C            00099         UNIDADES2
+  0000000D            00100         puer
+  0000000E            00101         rnu
+  0000000F            00102         nu
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000010            00103         val
+  00000011            00104         nd
+  00000012            00105         unidad
+  00000013            00106         Boton1
+  00000014            00107         EXAMPLE         ;example of a variable in access RAM
+                      00108                 ENDC
+                      00109 ;******************************************************************************
+                      00110 ;Constant  definitions
+                      00111 ;
+                      00112                 
+                      00113                 
+                      00114                 
+                      00115 ;******************************************************************************
+                      00116 ;EEPROM data
+                      00117 ; Data to be programmed into the Data EEPROM is defined here
+                      00118 
+F00000                00119                 ORG     0xf00000
+                      00120 
+F00000 6554 7473 4420 00121                 DE      "Test Data",0,1,2,3,4,5
+       7461 0061 0201 
+       0403 0005 
+                      00122 
+                      00123 ;******************************************************************************
+                      00124 
+                      00125 
+                      00126 ;Reset vector
+                      00127 ; This code will start executing when a reset occurs.
+F00010                00128 Vectors:
+Error[149]  : Directive only allowed when generating an object file
+Error[113]  : Symbol not previously defined (REMAPPED_APP_RESET_VECTOR)
+                      00129 R_vectors      code     REMAPPED_APP_RESET_VECTOR
+000000                00130 RVReset:
+000000 EF1E F000      00131                 goto    Main            ;go to start of main code
+                      00132 
+                      00133 ;******************************************************************************
+                      00134 ;High priority interrupt vector
+                      00135 ; This code will start executing when a high priority interrupt occurs or
+                      00136 ; when any interrupt occurs if interrupt priorities are not enabled.
+                      00137 
+Error[149]  : Directive only allowed when generating an object file
+Error[113]  : Symbol not previously defined (REMAPPED_APP_HIGH_ISR_VECTOR)
+                      00138 R_IntH        code    REMAPPED_APP_HIGH_ISR_VECTOR
+000000                00139 RVIntH:
+Error[118]  : Overwriting previous address contents (0000)
+Error[118]  : Overwriting previous address contents (0001)
+000000 D00C           00140                 bra     HighInt         ;go to high priority interrupt routine
+                      00141 
+                      00142 ;******************************************************************************
+                      00143 ;Low priority interrupt vector and routine
+                      00144 ; This code will start executing when a low priority interrupt occurs.
+                      00145 ; This code can be removed if low priority interrupts are not used.
+                      00146 
+Error[149]  : Directive only allowed when generating an object file
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+Error[113]  : Symbol not previously defined (REMAPPED_APP_LOW_ISR_VECTOR)
+                      00147 R_IntL        code     REMAPPED_APP_LOW_ISR_VECTOR
+000000                00148 RVIntL:
+Error[113]  : Symbol not previously defined (STATUS)
+Error[118]  : Overwriting previous address contents (0000)
+Error[118]  : Overwriting previous address contents (0001)
+Error[118]  : Overwriting previous address contents (0002)
+Error[118]  : Overwriting previous address contents (0003)
+000000 C000 F051      00149                 movff   STATUS,STATUS_TEMP      ;save STATUS register
+Error[113]  : Symbol not previously defined (WREG)
+000004 C000 F050      00150                 movff   WREG,WREG_TEMP          ;save working register
+Error[113]  : Symbol not previously defined (BSR)
+000008 C000 F052      00151                 movff   BSR,BSR_TEMP            ;save BSR register
+                      00152 
+                      00153 ;       *** low priority interrupt code goes here ***
+                      00154 
+                      00155 
+Error[113]  : Symbol not previously defined (BSR)
+00000C C052 F000      00156                 movff   BSR_TEMP,BSR            ;restore BSR register
+Error[113]  : Symbol not previously defined (WREG)
+000010 C050 F000      00157                 movff   WREG_TEMP,WREG          ;restore working register
+Error[113]  : Symbol not previously defined (STATUS)
+000014 C051 F000      00158                 movff   STATUS_TEMP,STATUS      ;restore STATUS register
+000018 0010           00159                 retfie
+                      00160 
+                      00161 ;******************************************************************************
+                      00162 ;High memory PCL tables 
+                      00163                 
+                      00164                 
+                      00165 ;******************************************************************************         
+                      00166 ;High priority interrupt routine
+                      00167 ; The high priority interrupt code is placed here to avoid conflicting with
+                      00168 ; the low priority interrupt vector.
+                      00169 
+00001A                00170 HighInt:
+                      00171 ;High_Interrupt:  ;Interrupcion de prioridad alta
+                      00172   ; COmprobar 
+Error[113]  : Symbol not previously defined (INTCON3)
+00001A A100           00173     btfss INTCON3, .0 ; boton de temperatura
+00001C D001           00174     bra $+4
+00001E EC13 F000      00175     call Checkboton1; 
+                      00176     ;btfss INTCON3, 0 
+                      00177     ;bra $+4
+                      00178     ;call Checkboton2;    
+                      00179     ;bcf INTCON3, .1
+                      00180     ;bcf Intco3, .0
+Error[113]  : Symbol not previously defined (INTCON3)
+000022 8700           00181     bsf INTCON3, .3 ; habilio la interrupcion externa 1
+                      00182     ;bsf Incon3,  3
+Error[113]  : Symbol not previously defined (FAST)
+000024 0010           00183     retfie FAST
+                      00184 
+Warning[207]: Found label after column 1. (Checkboton1)
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000026                00185  Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
+Error[113]  : Symbol not previously defined (INTCON3)
+000026 9700           00186   bcf INTCON3, .3
+000028 EC3D F000      00187   call DELAY1
+Error[113]  : Symbol not previously defined (PORTB)
+00002C A100           00188   Btfss PORTB, .0
+00002E D001           00189   bra $+4
+000030 2B13           00190   incf Boton1
+000032 0E02           00191   movlw 0x02
+000034 6513           00192   cpfsgt Boton1
+000036 D001           00193   bra $+4
+000038 6B13           00194   clrf Boton1
+00003A 0012           00195   return
+                      00196 
+                      00197 
+                      00198 
+                      00199 ;       *** high priority interrupt code goes here ***
+                      00200 
+                      00201 
+                      00202 ;  retfie       FAST
+                      00203 
+                      00204 
+                      00205 ;******************************************************************************
+                      00206 ;Start of main program
+                      00207 ; The main program code is placed here.
+                      00208 
+                      00209 ;version equ 1          ;versión 1 blinker básico o 2 doble led (requiere cablear)
+                      00210                 
+00003C                00211 Main:
+                      00212 ;       *** main code goes here ***
+00003C EC43 F000      00213         call SETUPOSC   ;configura oscilador interno 16MHz ?!
+                      00214         
+                      00215         ;call SETUPIO    ;configura LED1,2,3 y botones (pull ups)
+                      00216         ;CALL SETUPADC
+000040                00217 LOOP
+Error[113]  : Symbol not previously defined (LATA)
+000040 8100           00218         BSF LATA,.0;
+                      00219         ;call CONVERSION
+                      00220         ;call CONTROL
+                      00221         ;CALL GENBCD
+                      00222         ;CALL visual
+000042 D7FE           00223         BRA LOOP
+                      00224 
+                      00225 ;*******
+                      00226 
+                      00227    ; BSF                pLED1                   ; apaga cátodo LED (Green)
+                      00228                         ; repite indefinidamente
+                      00229 
+                      00230 ;******************************************************************************
+                      00231 ;subroutines:
+                      00232 ; Delay = 0.5 seconds
+                      00233 ; Clock frequency = 16 MHz ??
+                      00234 
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00235 ; Actual delay = 0.5 seconds = 2000000 cycles
+                      00236 ; Error = 0 %
+                      00237 
+                      00238         
+                      00239 
+000044                00240 Delay05s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
+                      00241                                 ;  ajustando código a PIC18F - PC alineado)
+                      00242                         ;1999996 cycles
+000044 0E11           00243         movlw   0x11
+000046 6F00           00244         movwf   d1
+000048 0E5D           00245         movlw   0x5D
+00004A 6F01           00246         movwf   d2
+00004C 0E05           00247         movlw   0x05
+00004E 6F02           00248         movwf   d3
+000050                00249 Delay05s_0
+000050 2F00           00250         decfsz  d1, f
+000052 EF2C F000      00251         goto    $+6
+000056 2F01           00252         decfsz  d2, f
+000058 EF2F F000      00253         goto    $+6
+00005C 2F02           00254         decfsz  d3, f
+00005E EF28 F000      00255         goto    Delay05s_0
+                      00256 
+                      00257                         ;4 cycles (including call)
+000062 0012           00258         return
+                      00259 
+                      00260         
+000064                00261 Delay01s                        ;  ejemplo de retardo por subrutina (SW, generado con PICDelay pero
+                      00262                                 ;  ajustando código a PIC18F - PC alineado)
+                      00263                         ;1999996 cycles
+000064 0EFF           00264         movlw   0xFF
+000066 6F00           00265         movwf   d1
+000068 0E19           00266         movlw   0x19
+00006A 6F01           00267         movwf   d2
+00006C                00268 Delay01s_0
+00006C 2F00           00269         decfsz  d1, f
+00006E EF3A F000      00270         goto    $+6
+000072 2F01           00271         decfsz  d2, f
+000074 EF36 F000      00272         goto    Delay01s_0
+                      00273 
+                      00274                         ;4 cycles (including call)
+000078 0012           00275         return
+                      00276         
+                      00277 
+00007A                00278 DELAY1
+00007A 0E30           00279     movlw 0x30
+00007C 6F00           00280     movwf d1
+00007E 2F00           00281 DELAY1_0 decfsz d1,f
+000080 EF3F F000      00282     goto DELAY1_0
+000084 0012           00283     return
+                      00284 
+                      00285 ;*************SUBROUTINES******************************************************
+000086                00286 SETUPOSC:
+000086 0E80           00287                 movlw   0x80
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+Error[113]  : Symbol not previously defined (OSCTUNE)
+000088 5300           00288                 movf    OSCTUNE                                 ; 3X PLL ratio mode selected
+00008A 0E72           00289                 movlw   0x72
+Error[113]  : Symbol not previously defined (OSCCON)
+00008C 6F00           00290                 movwf   OSCCON                                  ; Switch to 16MHz HFINTOSC
+00008E 0E10           00291                 movlw   0x10
+Error[113]  : Symbol not previously defined (OSCCON2)
+000090 6F00           00292                 movwf   OSCCON2                                 ; Enable PLL, SOSC, PRI OSC drivers turn
+                            ed off
+                      00293 #if 0       ; habilitar solo si se usa PLL para oscildor interno
+                      00294 PLL_Redy_loop
+                      00295                 btfss   OSCCON2, PLLRDY
+                      00296                 bra             PLL_Redy_loop                   ; Wait for PLL lock
+                      00297                 movlw   0x90
+                      00298                 movwf   ACTCON
+                      00299 #endif
+                      00300                 
+000092 0012           00301                 RETURN
+                      00302 
+                      00303 #if version==2  
+                      00304 SETUPIO:
+                      00305         ;CLRF    LATA
+                      00306         ;CLRF   LATB
+                      00307         
+                      00308         ;BCF            anLED1          ; con ayuda de definiciones hwconfig.inc se definen pines I/O
+                      00309         ;BCF            tLED1   ;out
+                      00310 
+                      00311 
+                      00312 
+                      00313 ;#if version==2 
+                      00314     CLRF PORTA
+                      00315     CLRF PORTB
+                      00316     movlw 0xFD ; puerto para la interrupcion boton rb1
+                      00317     movwf ANSELB
+                      00318     movlw 0xFF
+                      00319     movwf ADCON1
+                      00320     movlw 0xFF
+                      00321     movwf TRISB
+                      00322     movlw 0x00
+                      00323     movwf TRISA
+                      00324     movlw 0x00
+                      00325     movwf TRISC
+                      00326     ;configura interrupcion
+                      00327     movlw 0xF0
+                      00328     movwf INTCON
+                      00329     movlw 0xF0
+                      00330     movwf INTCON2
+                      00331  ;   bcf INTXON2, INTEDG0
+                      00332     ;movwf INTCON2
+                      00333     movlw  0xD8      ;0x11011000
+                      00334     movwf INTCON3
+                      00335     BCF ANSELB,.4
+                      00336     
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00337                 
+                      00338 
+                      00339     
+                      00340                 
+                      00341                 RETURN
+                      00342 
+                      00343 CONTROL:
+                      00344 ;00101000
+                      00345 ;00001111
+                      00346         movlw 0x02
+                      00347         cpfseq Boton1
+                      00348         bra $+4
+                      00349         call Maximo 
+                      00350         movlw 0x01
+                      00351         cpfseq Boton1
+                      00352         bra $+4
+                      00353         call Minimo
+                      00354                 RETURN 
+                      00355 Maximo:
+                      00356         movlw 0x28
+                      00357         movwf lect
+                      00358                 RETURN
+                      00359 Minimo:      
+                      00360         movlw 0x0F
+                      00361         movwf lect
+                      00362                 RETURN
+                      00363                 
+                      00364 SETUPADC:
+                      00365         MOVLW b'00000101'
+                      00366         MOVWF ADCON2
+                      00367         MOVLW b'00000000'
+                      00368         MOVWF ADCON1
+                      00369         MOVLW b'00100101'
+                      00370         MOVWF ADCON0
+                      00371     
+                      00372                 RETURN
+                      00373     
+                      00374 CONVERSION:
+                      00375         BSF ADCON0,GO
+                      00376 espera 
+                      00377         BTFSC ADCON0,GO
+                      00378         BRA espera
+                      00379         MOVF ADRESH,W
+                      00380         MOVWF lect
+                      00381         movlw d'50'
+                      00382         movwf dato
+                      00383         movlw d'5'
+                      00384         movwf dato2
+                      00385 ;       
+                      00386                 RETURN
+                      00387                 
+                      00388 GENBCD:
+                      00389        CLRF Unidades
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00390        clrf Decenas
+                      00391        clrf Centenas
+                      00392             
+                      00393        ;Comienza el proceso de otención de valores BCD 
+                      00394        ;para Centenas, Decenas y unidades atraves de restas
+                      00395        ;sucesivas.
+                      00396 CENTENAS1
+                      00397        movf dato,W      ;W=d'100'
+                      00398        subwf lect,W     ;Resto - d'100' (W)
+                      00399        btfss STATUS,C    ;Resto menor que d'100'?
+                      00400        goto DECENAS1     ;SI
+                      00401        movwf lect       ;NO, Salva el resto
+                      00402        movlw d'1'
+                      00403        ADDWF Centenas,W
+                      00404        movwf Centenas
+                      00405        goto CENTENAS1    ;Realiza otra resta
+                      00406        
+                      00407 DECENAS1
+                      00408        movf dato2,W      ;W=d'10'
+                      00409        subwf lect,W     ;Resto - d'10' (W)
+                      00410        btfss STATUS,C    ;Resto menor que d'10'?
+                      00411        goto UNIDADES10    ;Si
+                      00412        movwf lect       ;No, Salva el resto
+                      00413        movlw d'1'
+                      00414        ADDWF Decenas,W
+                      00415        movwf Decenas
+                      00416        goto DECENAS1     ;Realiza otra resta
+                      00417            
+                      00418 UNIDADES10
+                      00419        MOVF lect,W
+                      00420        movwf Unidades
+                      00421        clrf lect
+                      00422 f       movf Decenas,W
+                      00423        ;movwf PORTA
+                      00424 
+                      00425        
+                      00426     RETURN
+                      00427     
+                      00428 
+                      00429 TABLA: 
+                      00430 
+                      00431      ADDWF      PCL,F
+                      00432     RETLW       b'0111111'
+                      00433     RETLW       b'0000110'
+                      00434     RETLW       b'1011011'
+                      00435     RETLW       b'1001111'
+                      00436     RETLW       b'1100110'
+                      00437     RETLW       b'1101101'
+                      00438     RETLW       b'1111101'
+                      00439     RETLW       b'1000111'
+                      00440     RETLW       b'1111111'  
+                      00441     RETLW       b'1100111'  
+                      00442     
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00443     RETURN
+                      00444  
+                      00445     
+                      00446     
+                      00447 visual:  
+                      00448     
+                      00449     RLNCF Decenas,W   ;Imprime el dígito de las centenas
+                      00450     call TABLA
+                      00451     movwf LATA
+                      00452     BSF LATC,.1
+                      00453     CALL Delay01s
+                      00454     BCF LATC,.1
+                      00455     ;CALL Delay01s
+                      00456 
+                      00457     RLNCF Centenas,W   ;Imprime el dígito de las centenas
+                      00458     call TABLA
+                      00459     movwf LATA
+                      00460     BSF LATC,.0
+                      00461     CALL Delay01s
+                      00462     BCF LATC,.0
+                      00463     ;CALL Delay01s
+                      00464     
+                      00465     RLNCF Unidades,W   ;Imprime el dígito de las centenas
+                      00466     call TABLA
+                      00467     movwf LATA
+                      00468     BSF LATC,.2
+                      00469     CALL Delay01s
+                      00470     BCF LATC,.2
+                      00471     ;CALL Delay01s
+                      00472     
+                      00473     RETURN
+                      00474 #endif
+                      00475     
+                      00476 ;******************************************************************************
+                      00477 ;End of program
+                      00478 
+                      00479                 END
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE 11
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+BSR_TEMP                          00000052
+Boton1                            00000013
+Centenas                          00000007
+Centenas2                         0000000A
+Checkboton1                       00000026
+DELAY1                            0000007A
+DELAY1_0                          0000007E
+Decenas                           00000008
+Decenas2                          0000000B
+Delay01s                          00000064
+Delay01s_0                        0000006C
+Delay05s                          00000044
+Delay05s_0                        00000050
+EXAMPLE                           00000014
+HighInt                           0000001A
+LOOP                              00000040
+Main                              0000003C
+RVIntH                            00000000
+RVIntL                            00000000
+RVReset                           00000000
+SETUPOSC                          00000086
+STATUS_TEMP                       00000051
+UNIDADES1                         00000009
+UNIDADES2                         0000000C
+Unidades                          00000006
+Vectors                           00F00010
+WREG_TEMP                         00000050
+__18F25K50                        00000001
+d1                                00000000
+d2                                00000001
+d3                                00000002
+dato                              00000004
+dato2                             00000005
+lect                              00000003
+nd                                00000011
+nobootloader                      1
+nu                                0000000F
+puer                              0000000D
+rnu                               0000000E
+unidad                            00000012
+val                               00000010
+version                           1
+MPASM 5.82  /HOME/LOTHARIUS16/GITS/CONTROL_D   2-16-2019  23:25:55         PAGE 12
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+
+0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXXXXXXXXXXXXXX XXXX------------ ---------------- ----------------
+0000 : XXXXXXXXXXXXXXXX ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Bytes Used:   164
+Program Memory Bytes Free: 32604
+
+
+Errors   :    31
+Warnings :     1 reported,     0 suppressed
+Messages :     0 reported,     0 suppressed
+
+
