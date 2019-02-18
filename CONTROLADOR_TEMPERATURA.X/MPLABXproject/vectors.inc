@@ -34,7 +34,7 @@
 
 
 ;FOR ASM HID BOOTLOADER (adaptado a SAKA bootloader
-#if nobootloader
+#if nobootloader == 1
 	#define REMAPPED_APP_RESET_VECTOR		0x0
 	#define REMAPPED_APP_HIGH_ISR_VECTOR	0x8
 	#define REMAPPED_APP_LOW_ISR_VECTOR		0x18	

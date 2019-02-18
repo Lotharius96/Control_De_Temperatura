@@ -57,12 +57,23 @@
 	
 #include "p18f25k50_fz.inc"
 	;processor specific variable definitions
-
-#define nobootloader 1			;nobootloader = 1 =  prog with pickit3 or similar or simulation
-#define version 1
 #include "25k50config.inc"  ;MCU configuration bits (heredada de bootloader)
-#include "vectors.inc"		;vectors remapping for bootloader
-#include "hwconfig.inc"				
+;#include "vectors.inc"		;vectors remapping for bootloader
+#include "hwconfig.inc"
+	
+;//
+;//#define nobootloader 1
+	;nobootloader = 1 =  prog with pickit3 or similar or simulation
+#define version 2
+#define nobootloader 1	
+#define REMAPPED_APP_RESET_VECTOR		0x0
+#define REMAPPED_APP_HIGH_ISR_VECTOR	        0x8
+#define REMAPPED_APP_LOW_ISR_VECTOR		0x18	 			
+;******************************************************
+  ;  #include "p18f25k50_fz.inc"
+
+
+;**************************************	
 	;nobootloader = 0 =  prog. with USB HID bootloader 2.91 microchip
 ;******************************************************************************
 ;//incluir OBLIGATORIAMENTE los siguientes archivos en Header Files del proyecto:
@@ -126,7 +137,8 @@
 ;Reset vector
 ; This code will start executing when a reset occurs.
 Vectors:
-R_vectors      code     REMAPPED_APP_RESET_VECTOR
+;//R_vectors      code     0x0
+                ORG  0x0
 RVReset:
 		goto	Main		;go to start of main code
 
@@ -135,16 +147,18 @@ RVReset:
 ; This code will start executing when a high priority interrupt occurs or
 ; when any interrupt occurs if interrupt priorities are not enabled.
 
-R_IntH        code    REMAPPED_APP_HIGH_ISR_VECTOR
+R_IntH: 
+		 ORG    0X8
 RVIntH:
-		bra	HighInt		;go to high priority interrupt routine
+                    
+        bra	HighInt		;go to high priority interrupt routine
 
 ;******************************************************************************
 ;Low priority interrupt vector and routine
 ; This code will start executing when a low priority interrupt occurs.
 ; This code can be removed if low priority interrupts are not used.
-
-R_IntL        code     REMAPPED_APP_LOW_ISR_VECTOR
+R_IntL:
+                 ORG     0x18
 RVIntL:
 		movff	STATUS,STATUS_TEMP	;save STATUS register
 		movff	WREG,WREG_TEMP		;save working register
@@ -170,7 +184,7 @@ RVIntL:
 HighInt:
 ;High_Interrupt:  ;Interrupcion de prioridad alta
   ; COmprobar 
-    btfss INTCON3, .0 ; boton de temperatura
+    btfss INTCON3, .1 ; boton de temperatura
     bra $+4
     call Checkboton1; 
     ;btfss INTCON3, 0 
@@ -182,17 +196,17 @@ HighInt:
     ;bsf Incon3,  3
     retfie FAST
 
- Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
+Checkboton1:  ; subrutijna averigua el estado boton Variable de medicion
   bcf INTCON3, .3
   call DELAY1
-  Btfss PORTB, .0
+  Btfss PORTB, .1
   bra $+4
   incf Boton1
   movlw 0x02
   cpfsgt Boton1
   bra $+4
   clrf Boton1
-  return
+   return
 
 
 

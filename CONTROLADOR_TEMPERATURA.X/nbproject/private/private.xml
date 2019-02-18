@@ -3,10 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/vectors.inc</file>
+            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/TEMPMAIN.asm</file>
+            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/nbproject/Makefile-default.mk</file>
+            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/18f25k50_zhidbldr.lkr</file>
+            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/nbproject/Makefile-impl.mk</file>
             <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/p18f25k50_fz.inc</file>
             <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/hwconfig.inc</file>
             <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/25k50config.inc</file>
-            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/TEMPMAIN.asm</file>
+            <file>file:/home/lotharius16/GITS/Control_De_Temperatura/CONTROLADOR_TEMPERATURA.X/MPLABXproject/18f25k50_znobldr.lkr</file>
         </group>
     </open-files>
 </project-private>
